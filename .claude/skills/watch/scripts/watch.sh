@@ -18,9 +18,35 @@ if [[ "$SRC" =~ ^https?:// ]]; then
   if [[ -n "${YT_COOKIES:-}" ]]; then
     printf '%s\n' "$YT_COOKIES" > "$OUT/.cookies.txt"; JS+=(--cookies "$OUT/.cookies.txt")
   fi
-  yt-dlp -q --no-warnings --no-playlist "${JS[@]}" \
+  if ! yt-dlp -q --no-warnings --no-playlist "${JS[@]}" \
     -f "bv*[height<=720]+ba/b[height<=720]/b" --merge-output-format mp4 \
-    --write-info-json -o "$OUT/video.%(ext)s" "$SRC"
+    --write-info-json -o "$OUT/video.%(ext)s" "$SRC"; then
+    # YouTube bot-blocks cloud IPs. The mweb client still returns metadata and storyboard
+    # mosaics (3x3 thumbnail grids from i.ytimg.com), which is enough to see the video roughly.
+    echo "video download blocked; falling back to metadata + storyboard thumbnails" >&2
+    yt-dlp -q --no-warnings --no-playlist "${JS[@]}" --extractor-args "youtube:player_client=mweb" \
+      --skip-download --write-info-json -o "$OUT/video.%(ext)s" "$SRC"
+    python3 - "$OUT" <<'PY'
+import json, subprocess, sys
+out = sys.argv[1]
+d = json.load(open(f"{out}/video.info.json"))
+sb = [f for f in d["formats"] if f["format_id"].startswith("sb")]
+best = max(sb, key=lambda f: f.get("width") or 0)
+t = 0.0
+per_tile = best["fragments"][0]["duration"] / (best["rows"] * best["columns"])
+for i, fr in enumerate(best["fragments"]):
+    path = f"{out}/frames/storyboard_{i:02d}_t{int(t):05d}s.jpg"
+    subprocess.run(["curl", "-sS", "-o", path, fr["url"]], check=True)
+    t += fr["duration"]
+with open(f"{out}/info.txt", "w") as fh:
+    fh.write(f"source: {d['webpage_url']}\ntitle: {d['title']}\nuploader: {d.get('uploader')}\n"
+             f"duration_sec: {d['duration']}\nmode: storyboard only ({best['rows']}x{best['columns']} grid per image, "
+             f"{per_tile:.1f}s per tile, left-to-right then top-to-bottom; file name = start time)\n"
+             f"description:\n{d.get('description','')}\n")
+print(open(f"{out}/info.txt").read())
+PY
+    exit 0
+  fi
   # Captions are best effort: original ko/en only (translated tracks trigger 429s)
   yt-dlp -q --no-warnings --no-playlist "${JS[@]}" --skip-download \
     --write-subs --write-auto-subs --sub-langs "ko,en,ko-orig,en-orig" --sub-format vtt \
