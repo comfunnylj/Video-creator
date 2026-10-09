@@ -19,5 +19,9 @@ Input: a video URL (YouTube etc.) or a local file path, plus an optional questio
 4. Answer in the user's language: what happens, key points with timestamps, and anything the
    user specifically asked. Say clearly when there was no transcript and the answer is from frames only.
 
+YouTube blocks cloud-server IPs ("Sign in to confirm you're not a bot", or HTTP 403 on video data).
+The fix is a logged-in cookies.txt (Netscape format) in the `YT_COOKIES` environment variable.
+Without it, ask the user to upload the video file instead.
+
 If the download fails (private video, geo block, proxy 403), report the yt-dlp error as-is and ask
 for a local file instead.

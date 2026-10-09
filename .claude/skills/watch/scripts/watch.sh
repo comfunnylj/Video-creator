@@ -13,11 +13,18 @@ if ! command -v yt-dlp >/dev/null 2>&1; then
 fi
 
 if [[ "$SRC" =~ ^https?:// ]]; then
-  yt-dlp -q --no-playlist \
+  JS=(); command -v node >/dev/null 2>&1 && JS=(--js-runtimes node)
+  # YouTube blocks cloud IPs ("confirm you're not a bot"); YT_COOKIES holds a Netscape cookies.txt
+  if [[ -n "${YT_COOKIES:-}" ]]; then
+    printf '%s\n' "$YT_COOKIES" > "$OUT/.cookies.txt"; JS+=(--cookies "$OUT/.cookies.txt")
+  fi
+  yt-dlp -q --no-warnings --no-playlist "${JS[@]}" \
     -f "bv*[height<=720]+ba/b[height<=720]/b" --merge-output-format mp4 \
-    --write-subs --write-auto-subs --sub-langs "ko.*,en.*" --sub-format vtt \
-    --write-info-json \
-    -o "$OUT/video.%(ext)s" "$SRC"
+    --write-info-json -o "$OUT/video.%(ext)s" "$SRC"
+  # Captions are best effort: original ko/en only (translated tracks trigger 429s)
+  yt-dlp -q --no-warnings --no-playlist "${JS[@]}" --skip-download \
+    --write-subs --write-auto-subs --sub-langs "ko,en,ko-orig,en-orig" --sub-format vtt \
+    -o "$OUT/video.%(ext)s" "$SRC" || echo "captions: download failed (continuing without)" >&2
   VIDEO="$(ls "$OUT"/video.mp4 "$OUT"/video.mkv "$OUT"/video.webm 2>/dev/null | head -1)"
 else
   VIDEO="$SRC"
