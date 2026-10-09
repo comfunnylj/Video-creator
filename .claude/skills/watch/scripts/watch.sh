@@ -16,7 +16,10 @@ if [[ "$SRC" =~ ^https?:// ]]; then
   JS=(); command -v node >/dev/null 2>&1 && JS=(--js-runtimes node)
   # YouTube blocks cloud IPs ("confirm you're not a bot"); YT_COOKIES holds a Netscape cookies.txt
   if [[ -n "${YT_COOKIES:-}" ]]; then
-    printf '%s\n' "$YT_COOKIES" > "$OUT/.cookies.txt"; JS+=(--cookies "$OUT/.cookies.txt")
+    # Accept raw cookies.txt or a one-line base64 of it (env var UIs often drop newlines/tabs)
+    if [[ "$YT_COOKIES" == *$'\t'* ]]; then printf '%s\n' "$YT_COOKIES" > "$OUT/.cookies.txt"
+    else printf '%s' "$YT_COOKIES" | base64 -d > "$OUT/.cookies.txt"; fi
+    JS+=(--cookies "$OUT/.cookies.txt")
   fi
   if ! yt-dlp -q --no-warnings --no-playlist "${JS[@]}" \
     -f "bv*[height<=720]+ba/b[height<=720]/b" --merge-output-format mp4 \
