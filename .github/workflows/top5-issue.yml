@@ -1,0 +1,33 @@
+name: Chat-operated Top5 renderer
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: write
+jobs:
+  render:
+    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.body, 'TOP5_JOB_V1')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Korean font and ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-nanum
+      - name: Render requested video
+        run: python3 top5_operator.py --issue-event "$GITHUB_EVENT_PATH" --output-dir output
+      - name: Upload MP4 and attribution record
+        uses: actions/upload-artifact@v4
+        with:
+          name: travel-top5-video
+          path: |
+            output/top5.mp4
+            output/metadata.json
+          retention-days: 14
+      - name: Add result link to issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: gh issue comment "$ISSUE" --repo "$GH_REPO" --body "영상 생성 완료. [작업 결과 다운로드]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) (Artifacts → travel-top5-video). 데모는 실제 여행 영상이 아닙니다."
