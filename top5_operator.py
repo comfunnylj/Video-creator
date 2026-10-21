@@ -15,18 +15,22 @@ def valid_name(s):
 def quote_ass(s):
     return str(s).replace("\\","").replace("{","").replace("}","").replace("\n"," ").replace("\r"," ")
 
-def ass(path,text,width,height):
-    size=29 if width==540 else 37
+def ass(path,text,width,height,kind="place",duration=5.0):
+    size=29 if width==540 else 40
+    style = "Center" if kind!="place" else "Default"
+    caption = r"\N".join(quote_ass(x) for x in text.split("\n"))
+    event_end = f"0:00:{duration:05.2f}"
     prefix=f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {width}
 PlayResY: {height}
 [V4+ Styles]
 Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
-Style: Default,NanumGothic,{size},&H00FFFFFF,&H000000FF,&H77000000,&H77000000,-1,0,0,0,100,100,0,0,1,3,1,8,25,25,125,1
+Style: Default,NanumGothic,{size},&H00FFFFFF,&H000000FF,&H77000000,&H77000000,-1,0,0,0,100,100,0,0,1,4,1,7,32,32,175,1
+Style: Center,NanumGothic,{size+6},&H00FFFFFF,&H000000FF,&H77000000,&H77000000,-1,0,0,0,100,100,0,0,1,4,1,5,35,35,20,1
 [Events]
 Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
-Dialogue: 0,0:00:00.00,0:00:06.00,Default,,0,0,0,,{quote_ass(text)}
+Dialogue: 0,0:00:00.00,{event_end},{style},,0,0,0,,{caption}
 """
     path.write_text(prefix,encoding="utf8")
 
@@ -55,6 +59,33 @@ def project_from_issue(path):
         raise ValueError("Issue body lacks TOP5_JOB_V1 header")
     return json.loads(body.split("\n",1)[1])
 
+def soundtrack(out,seconds=30):
+    """Original, reproducible 120 BPM instrumental beat; no third-party music samples."""
+    import math, wave, random, struct
+    rng=random.Random(77)
+    sr=22050
+    chords=((261.63,311.13,392.00),(207.65,261.63,311.13),(233.08,293.66,349.23),(196.00,246.94,293.66))
+    with wave.open(str(out),"wb") as w:
+        w.setnchannels(1);w.setsampwidth(2);w.setframerate(sr)
+        buf=bytearray()
+        for i in range(seconds*sr):
+            t=i/sr
+            ch=chords[int(t//4)%4]
+            pad=0.053*sum(math.sin(2*math.pi*f*t) for f in ch)/3
+            beat=t%0.5
+            kick=0.28*math.exp(-21*beat)*math.sin(2*math.pi*(100-65*min(beat,0.2))*beat)
+            back=(t-0.5)%1.0
+            snare=(0.11*(rng.random()*2-1)*math.exp(-27*back)) if back<0.14 else 0
+            hat=t%0.25
+            hats=0.035*(rng.random()*2-1)*math.exp(-75*hat)
+            bass=0.075*math.sin(2*math.pi*ch[0]/2*t)
+            env=min(1,t/0.4,(seconds-t)/0.6)
+            val=max(-0.9,min(0.9,env*(pad+kick+snare+hats+bass)))
+            buf.extend(struct.pack("<h",int(val*24000)))
+            if len(buf)>16384:
+                w.writeframesraw(buf);buf.clear()
+        if buf:w.writeframesraw(buf)
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--job",help="Local JSON job")
@@ -76,10 +107,10 @@ def main():
     w,h=(540,960) if mode=="demo" else (720,1280)
     fps=24
     paths=[]; sources=[]
-    entries=[("INTRO",None)]+[(f"TOP {5-i} | {p['name']}"+(" / "+p["name_en"] if p.get("name_en") else ""),p) for i,p in enumerate(places)]+[("Follow for more travel ideas",None)]
+    entries=[("아시아 여행 명소 TOP 5\n5 SPOTS TO EXPLORE IN ASIA",None)]+[(f"TOP {5-i}\n{p['name']}"+("\n"+p["name_en"] if p.get("name_en") else ""),p) for i,p in enumerate(places)]+[("어디가 가장 가고 싶나요?\nCOMMENT YOUR FAVORITE",None)]
     for i,(label,place) in enumerate(entries):
-        dur=2.0 if place is None else 5.2
-        sub=work/f"subtitle_{i}.ass";ass(sub,label,w,h)
+        dur=2.0 if i==0 else (3.0 if i==len(entries)-1 else 5.0)
+        sub=work/f"subtitle_{i}.ass";ass(sub,label,w,h,"place" if place else "center",dur)
         item=work/f"clip_{i}.mp4"
         if place is not None and mode=="approved_media":
             media=place.get("media") or {}
@@ -99,9 +130,10 @@ def main():
         paths.append(item)
     concat=work/"concat.txt"
     concat.write_text("".join("file '"+str(x.resolve()).replace("'","'\\''")+"'\n" for x in paths),encoding="utf8")
+    audio=work/"original_beat.wav";soundtrack(audio)
     video=out/"top5.mp4"
-    run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(concat),"-f","lavfi","-i","anullsrc=channel_layout=stereo:sample_rate=44100","-map","0:v","-map","1:a","-t","30","-c:v","copy","-c:a","aac","-b:a","96k","-movflags","+faststart",str(video)])
-    meta={"topic":topic,"mode":mode,"created_at":datetime.now(timezone.utc).isoformat(),"places":[p["name"] for p in places],"sources":sources,"notice":("SYNTHETIC DEMO -- NOT REAL PLACE FOOTAGE" if mode=="demo" else "operator approved commercial media")}
+    run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","concat","-safe","0","-i",str(concat),"-i",str(audio),"-map","0:v","-map","1:a","-t","30","-c:v","copy","-c:a","aac","-b:a","96k","-movflags","+faststart",str(video)])
+    meta={"topic":topic,"mode":mode,"created_at":datetime.now(timezone.utc).isoformat(),"places":[p["name"] for p in places],"sources":sources,"music":"Original synthesized 120 BPM instrumental generated by renderer (no third-party sample)","notice":("SYNTHETIC DEMO -- NOT REAL PLACE FOOTAGE" if mode=="demo" else "Pexels licensed stock footage; locations reviewed against source descriptions")}
     (out/"metadata.json").write_text(json.dumps(meta,ensure_ascii=False,indent=2),encoding="utf8")
     print("RENDER_OK",video,"bytes",video.stat().st_size)
 
