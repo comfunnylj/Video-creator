@@ -1,0 +1,26 @@
+{
+  "mode": "demo",
+  "topic": "서울 여행 명소 Top 5 — 작동 확인",
+  "places": [
+    {
+      "name": "남산서울타워",
+      "name_en": "N Seoul Tower"
+    },
+    {
+      "name": "경복궁",
+      "name_en": "Gyeongbokgung"
+    },
+    {
+      "name": "북촌 한옥마을",
+      "name_en": "Bukchon Hanok Village"
+    },
+    {
+      "name": "롯데월드타워",
+      "name_en": "Lotte World Tower"
+    },
+    {
+      "name": "반포한강공원",
+      "name_en": "Banpo Hangang Park"
+    }
+  ]
+}
