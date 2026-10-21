@@ -1,0 +1,111 @@
+{
+  "mode": "approved_media",
+  "audio_mode": "silent",
+  "title_ko": "실제 여행 명소 TOP 5",
+  "title_en": "TOP 5 REAL TRAVEL DESTINATIONS",
+  "intro": {
+    "media": {
+      "approved": true,
+      "license_checked": false,
+      "location_verified": true,
+      "download_url": "https://videos.pexels.com/video-files/12345/12345-hd_1920_1080_25fps.mp4",
+      "source_url": "https://www.pexels.com/video/12345/",
+      "license_url": "https://www.pexels.com/license/",
+      "source_creator": "A reviewer",
+      "location_evidence": "Actual Pexels page states filming location; replace with verification",
+      "rights_checked_date": "2026-10-21"
+    }
+  },
+  "places": [
+    {
+      "rank": 5,
+      "place_ko": "검증 장소 5",
+      "place_en": "Verified Place 5",
+      "country_ko": "국가",
+      "country_en": "Country",
+      "media": {
+        "approved": true,
+        "license_checked": false,
+        "location_verified": false,
+        "download_url": "https://videos.pexels.com/video-files/12345/12345-hd_1920_1080_25fps.mp4",
+        "source_url": "https://www.pexels.com/video/12345/",
+        "license_url": "https://www.pexels.com/license/",
+        "source_creator": "A reviewer",
+        "location_evidence": "Actual Pexels page states filming location; replace with verification",
+        "rights_checked_date": "2026-10-21"
+      }
+    },
+    {
+      "rank": 4,
+      "place_ko": "검증 장소 4",
+      "place_en": "Verified Place 4",
+      "country_ko": "국가",
+      "country_en": "Country",
+      "media": {
+        "approved": true,
+        "license_checked": false,
+        "location_verified": false,
+        "download_url": "https://videos.pexels.com/video-files/12345/12345-hd_1920_1080_25fps.mp4",
+        "source_url": "https://www.pexels.com/video/12345/",
+        "license_url": "https://www.pexels.com/license/",
+        "source_creator": "A reviewer",
+        "location_evidence": "Actual Pexels page states filming location; replace with verification",
+        "rights_checked_date": "2026-10-21"
+      }
+    },
+    {
+      "rank": 3,
+      "place_ko": "검증 장소 3",
+      "place_en": "Verified Place 3",
+      "country_ko": "국가",
+      "country_en": "Country",
+      "media": {
+        "approved": true,
+        "license_checked": false,
+        "location_verified": false,
+        "download_url": "https://videos.pexels.com/video-files/12345/12345-hd_1920_1080_25fps.mp4",
+        "source_url": "https://www.pexels.com/video/12345/",
+        "license_url": "https://www.pexels.com/license/",
+        "source_creator": "A reviewer",
+        "location_evidence": "Actual Pexels page states filming location; replace with verification",
+        "rights_checked_date": "2026-10-21"
+      }
+    },
+    {
+      "rank": 2,
+      "place_ko": "검증 장소 2",
+      "place_en": "Verified Place 2",
+      "country_ko": "국가",
+      "country_en": "Country",
+      "media": {
+        "approved": true,
+        "license_checked": false,
+        "location_verified": false,
+        "download_url": "https://videos.pexels.com/video-files/12345/12345-hd_1920_1080_25fps.mp4",
+        "source_url": "https://www.pexels.com/video/12345/",
+        "license_url": "https://www.pexels.com/license/",
+        "source_creator": "A reviewer",
+        "location_evidence": "Actual Pexels page states filming location; replace with verification",
+        "rights_checked_date": "2026-10-21"
+      }
+    },
+    {
+      "rank": 1,
+      "place_ko": "검증 장소 1",
+      "place_en": "Verified Place 1",
+      "country_ko": "국가",
+      "country_en": "Country",
+      "media": {
+        "approved": true,
+        "license_checked": false,
+        "location_verified": false,
+        "download_url": "https://videos.pexels.com/video-files/12345/12345-hd_1920_1080_25fps.mp4",
+        "source_url": "https://www.pexels.com/video/12345/",
+        "license_url": "https://www.pexels.com/license/",
+        "source_creator": "A reviewer",
+        "location_evidence": "Actual Pexels page states filming location; replace with verification",
+        "rights_checked_date": "2026-10-21"
+      }
+    }
+  ]
+}
