@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 HEADER = 'TOP5_STYLE_V2\n'
-MAX_BYTES = 180_000_000
+MAX_BYTES = 950_000_000
 
 def accepted(url):
     if not isinstance(url, str):
@@ -98,7 +98,12 @@ def make_manifest(job, work, fetch=True):
                 raise ValueError(f'rank {rank}: missing {key}')
         media=validate_media(place,'rank '+str(rank))
         rel=f'assets/place{rank}.mp4'
-        if fetch:download(media['download_url'],work/rel)
+        if fetch:
+            if media['download_url']==intro['download_url']:
+                import shutil
+                shutil.copyfile(assets/'intro.mp4',work/rel)
+            else:
+                download(media['download_url'],work/rel)
         m['places'].append({**{k:place[k] for k in ('rank','place_ko','place_en','country_ko','country_en')}, 'footage':rel,'trim_start':float(place.get('trim_start',0)), 'crop_x':float(place.get('crop_x',0.5)), **{k:media[k] for k in ('source_url','license_url','source_creator','location_evidence','rights_checked_date')}})
         audit['places'].append({'rank':rank,'name':place['place_ko'],**{k:v for k,v in media.items() if k!='download_url'}})
     (work/'source_audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding='utf-8')
