@@ -37,3 +37,11 @@ python scripts/verify_top5.py project/outputs/top5_ko_SILENT.mp4 project/outputs
 
 ## Security and reproducibility
 Never paste Gemini or other API keys into deliverables. Use `GEMINI_API_KEY` from secured local environment if watch-gemini video analysis is separately requested. The rendering script itself needs **no API key**. Save the manifest and source-rights audit as evidence; do not treat file titles or download links as proof of filmed geography. For an unverified clip, no output is preferable to false geography.
+
+## Persistent global numbering and Drive archive (user rule, 2026-10-22)
+- All TOP5 Shorts in this project share **one sequential series counter across every topic**. Never restart #1 for a new category. The previous completed numbered entries are #1 original surreal nature, #2 alternate surreal nature, #3 Seoul Hangang; the next new installment is #4.
+- The source of truth is the CSV `TOP5_영상제작목록.csv` under **Google Drive → 프로젝트 → 멀티미디어** (folder ID `1Au5KF_gCQEwMZ4u2dHwV8FCHXmmCMrsI`). Before starting a new installment, read it and choose max existing serial + 1. Retain failed/incomplete rows with explicit status; never call a failed render 'completed'. Avoid conflicts if parallel jobs exist.
+- Append the serial suffix to the Korean title, English title, final MP4 filenames and production-list entry (e.g. `... TOP5 #4`). Do not confuse a rank (`#1` inside the video) with the global production serial (`#4`).
+- After technical QA succeeds, archive both KO and EN finished MP4s, the optional source/rights package and contact preview in **that exact Drive Multimedia folder**, and verify read-back from Google Drive. Do not claim Drive upload succeeded before listing the files.
+- Keep the production list intentionally simple: production date (KST), video title, locations shown (rank 5→1), status, stored filenames. For old items with unknown dates, record unknown instead of guessing. Update the CSV only after determining verified work status. Preserve prior rows.
+- YouTube-app-added copyrighted music is NOT embedded in stored silent master files; the original user-posted MP4 with YouTube audio, if provided, may be privately archived separately without using that embedded track as a blanket reuse license.
