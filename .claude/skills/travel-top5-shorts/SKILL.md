@@ -45,3 +45,10 @@ Never paste Gemini or other API keys into deliverables. Use `GEMINI_API_KEY` fro
 - After technical QA succeeds, archive both KO and EN finished MP4s, the optional source/rights package and contact preview in **that exact Drive Multimedia folder**, and verify read-back from Google Drive. Do not claim Drive upload succeeded before listing the files.
 - Keep the production list intentionally simple: production date (KST), video title, locations shown (rank 5→1), status, stored filenames. For old items with unknown dates, record unknown instead of guessing. Update the CSV only after determining verified work status. Preserve prior rows.
 - YouTube-app-added copyrighted music is NOT embedded in stored silent master files; the original user-posted MP4 with YouTube audio, if provided, may be privately archived separately without using that embedded track as a blanket reuse license.
+
+## Global visual quality preference (2026-10-24)
+- User rejects low-quality images/videos and any **timelapse, hyperlapse, accelerated or artificially sped-up footage**. These are prohibited in TOP5 projects as well as Daily Quote Maker, unless the user explicitly changes this rule.
+- Favor sharply focused 4K/UHD-or-better native footage with an authentic, cinematic composition; keep true real-time speed. Reject blurry, heavily compressed, low-bitrate or obviously upscaled source clips.
+- Before accepting a clip, inspect its actual native resolution, vertical crop quality, speed and a few nonadjacent frames. An exported 1080×1920 file is not evidence the original was high-resolution.
+- When suitable real-time video cannot be obtained, prefer an excellent authentic high-resolution **long-exposure still** in the separate Daily Quote Maker workflow; do not substitute a low-quality timelapse.
+- See `daily-quote-maker/QUALITY_POLICY.md` for shared quality standards.
