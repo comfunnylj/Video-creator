@@ -1,0 +1,47 @@
+name: Daily Quote - Check Social Publisher
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  bridge-probe:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'DAILY_QUOTE_BRIDGE_PROBE:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify public Oracle social bridge status
+        env:
+          STATUS_URL: https://161-33-141-193.sslip.io/social-publisher-status/status.json
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.request,datetime
+          req=urllib.request.Request(os.environ['STATUS_URL'],headers={'User-Agent':'DailyQuoteBridgeProbe/1.0'})
+          with urllib.request.urlopen(req,timeout=18) as r:
+            if r.status!=200: raise RuntimeError("status HTTP "+str(r.status))
+            info=json.loads(r.read(1_000_000))
+          print("bridge_id",info.get("bridge_id"))
+          print("account",info.get("account"))
+          print("enabled",info.get("enabled"))
+          print("last_success_at",info.get("last_success_at"))
+          print("updated_at",info.get("updated_at"))
+          print("last_error",info.get("last_error"))
+          # Avoid dumping tokens, internal post content, recipient details or full provider messages.
+          for field in ("tasks","task_status","task_errors","registry"):
+            obj=info.get(field)
+            if isinstance(obj,dict):
+              print(field,"keys",list(obj.keys())[:35])
+              if field=="tasks":
+                print("quote_status",json.dumps(obj.get("quote"),ensure_ascii=False)[:600])
+              if field=="task_errors": print("quote_error",str(obj.get("quote"))[:200])
+            elif isinstance(obj,list):
+              print(field,"ids",[x.get("id") or x.get("source") for x in obj if isinstance(x,dict)][:30])
+              for x in obj:
+                if isinstance(x,dict) and (x.get("id")=="quote" or x.get("source")=="quote"):
+                  print("quote_task",str({k:v for k,v in x.items() if k in ("id","source","enabled","error","last_success_at","last_error")})[:600])
+          if info.get("bridge_id")!="sp-oracle-genie-carrot-v1" or info.get("account")!="genie_carrot":
+            raise RuntimeError("Unexpected bridge/account identity")
+          if info.get("enabled") is not True: raise RuntimeError("Bridge globally disabled")
+          print("BRIDGE_IDENTITY_OK")
+          PY
