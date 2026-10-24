@@ -10,6 +10,7 @@ version: 1.0.0
 - The editable Google Sheet is `Daily Quote Maker_명언·시·소설 문구 DB_v1`:
   `https://docs.google.com/spreadsheets/d/1be-g64yNrQ6d3bAT-lopUpjZmDRBnhfe_1YAP674BjE/edit`.
   It currently contains 65 IDs in the `문구DB` tab, with `게시이력` for verified publication URLs. Always **read it live** before selection. Never assume an old GitHub snapshot reflects later corrections.
+- The same Google Sheet now includes the **`사진DB`** tab (added 2026-10-25), with 6 initial real Seoul Pexels photographs, source pages, photographers, original native pixel dimensions, direct image URLs, source quality and review states. For unattended selection use only `제작 검수 완료` images; review other rows before use. Never mistake metadata verification for a visual crop/quality check.
 - Google Drive asset folder: `프로젝트/멀티미디어/명언제조기`,
   `https://drive.google.com/drive/folders/1dtgJ6i001xNdCklwWc8u9SJh6OUnFiYA`.
 - Skill and manual canonical archive: `프로젝트/Skill & Manual/daily-quote-maker` (create and use this folder).
