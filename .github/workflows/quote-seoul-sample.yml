@@ -1,0 +1,35 @@
+name: Daily Quote - Real Seoul Reel Sample
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: read
+jobs:
+  render:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'QUOTE_SEOUL_SAMPLE:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install video encoder and Korean typefaces
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
+          python -m pip install --disable-pip-version-check Pillow
+      - name: Produce the 10-second quote reel with stock footage
+        run: python daily-quote-maker/render_seoul_sample.py
+      - name: Archive two deliverables and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-seoul-quote-sample-10s
+          path: |
+            output_quote_seoul/daily_quote_seoul_andohyeon_sample_10s.mp4
+            output_quote_seoul/daily_quote_seoul_preview.jpg
+            output_quote_seoul/source_and_caption.json
+          if-no-files-found: error
+          retention-days: 14
