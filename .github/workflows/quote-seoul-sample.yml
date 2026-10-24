@@ -1,16 +1,37 @@
-name: Daily Quote - Real Seoul Reel Sample
+name: Daily Quote - Real Seoul High Quality Sample
 on:
-  issues:
-    types: [opened]
   workflow_dispatch:
+    inputs:
+      source_url:
+        description: "Direct download URL for a high-resolution realtime Seoul stock clip"
+        required: true
+        type: string
+      source_page:
+        description: "Original stock page"
+        required: true
+        type: string
+      source_creator:
+        description: "Credit / photographer"
+        required: true
+        type: string
+      real_time_verified:
+        description: "I viewed the clip: natural real-time speed, NOT timelapse or hyperlapse"
+        required: true
+        type: boolean
+        default: false
 permissions:
   contents: read
-  issues: read
 jobs:
   render:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'QUOTE_SEOUL_SAMPLE:')
+    if: ${{ inputs.real_time_verified == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      QUOTE_SOURCE_URL: ${{ inputs.source_url }}
+      QUOTE_SOURCE_PAGE: ${{ inputs.source_page }}
+      QUOTE_SOURCE_CREATOR: ${{ inputs.source_creator }}
+      QUOTE_CAPTURE_STYLE: real_time
+      QUOTE_VISUAL_REVIEWED: "yes"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,12 +42,12 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
           python -m pip install --disable-pip-version-check Pillow
-      - name: Produce the 10-second quote reel with stock footage
+      - name: Produce the 10-second high quality realtime quote reel
         run: python daily-quote-maker/render_seoul_sample.py
-      - name: Archive two deliverables and provenance
+      - name: Archive outputs and provenance
         uses: actions/upload-artifact@v4
         with:
-          name: real-seoul-quote-sample-10s
+          name: high-quality-real-seoul-quote-sample-10s
           path: |
             output_quote_seoul/daily_quote_seoul_andohyeon_sample_10s.mp4
             output_quote_seoul/daily_quote_seoul_preview.jpg
