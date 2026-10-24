@@ -32,6 +32,15 @@ jobs:
             v=info.get(k)
             if isinstance(v,dict):
               print(k+"_keys",sorted(v.keys())[:35]); print(k+"_select",{field:v.get(field) for field in ("bridge_id","enabled","account","last_success_at","updated_at","last_error")})
+              if k=="bridge":
+                tasks=v.get("tasks")
+                if isinstance(tasks,dict):
+                  print("registered_task_ids",sorted(tasks.keys()))
+                  print("quote_registry_entry",{key:tasks.get("quote",{}).get(key) for key in ("id","source","enabled","network","account","last_error") if isinstance(tasks.get("quote"),dict)})
+                elif isinstance(tasks,list):
+                  print("registered_task_ids",[x.get("id") for x in tasks if isinstance(x,dict)])
+                  print("quote_registry_entry",[{key:x.get(key) for key in ("id","source","enabled","network","account","last_error")} for x in tasks if isinstance(x,dict) and x.get("id")=="quote"])
+                print("quote_task_error",str(v.get("task_errors",{}).get("quote") if isinstance(v.get("task_errors"),dict) else "")[:250])
           # Avoid dumping tokens, internal post content, recipient details or full provider messages.
           for field in ("tasks","task_status","task_errors","registry"):
             obj=info.get(field)
