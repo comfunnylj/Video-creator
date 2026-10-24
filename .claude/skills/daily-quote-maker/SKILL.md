@@ -46,6 +46,10 @@ version: 1.0.0
 - The workflow may be run manually with a specifically reviewed source. To automate unattended daily publication, first create a **curated accepted photo bank** and initial tested scripts, establish credential-free or secured access to approved quote records, and confirm receipt reconciliation. If any of these cannot be verified, keep publication disabled and clearly show setup remaining rather than silently posting poor photos or publishing unapproved drafts.
 - Proposed time, Asia/Seoul: Instagram 09:00, Threads 09:10; schedule only after operational safeguards and queue readiness.
 
+### Safe publishing payload builder
+- `daily-quote-maker/build_publisher_payloads.py` prepares **local, non-submitted** Instagram and Threads job JSON payloads from an exact 4:5 JPEG, its provenance, an immutable already-committed GitHub raw URL, and an explicit `--approved-for-posting` gate. It validates real SHA256 and byte count, format, stable dedup IDs, KST timestamps and Threads UTF-16 text length; this does **not** itself enable the Oracle receiver, issue SNS publication or verify delivery.
+- Before publishing, check the confirmed Meta/Oracle receipt and Google Sheets approval state. The current dedicated Threads task was initially registered with `enabled=false` until that receipt can be verified. Avoid mutating existing Instagram outbox jobs.
+
 ## 5. Maintenance
 - GitHub folder: `.claude/skills/daily-quote-maker/` is the skill; `daily-quote-maker/` holds code and quality docs.
 - User may revise fonts, photos, crops, channels, captions, author biographies, schedule or categories at any time. Make targeted changes, run tests, update version, and re-archive `Skill & Manual`; preserve previous release for rollback.
