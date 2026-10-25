@@ -1,31 +1,31 @@
-# Daily Quote Maker v1.0 — 운영 상태 (2026-10-25 KST)
+# Daily Quote Maker v1.1.0 — 운영 상태 (2026-10-25 KST)
 
-## 검증 완료
-- 정식 GitHub 프로젝트 스킬: `.claude/skills/daily-quote-maker/SKILL.md`
-- 이미지 제작기: `daily-quote-maker/render_quote_card.py` (4:5, 9:16; 원본 고해상도 확인)
-- 게시 payload 검증기: `daily-quote-maker/build_publisher_payloads.py` (인스타그램/Threads 구분, 체크섬, 중복 키)
-- 원본 사진 품질 기준: `daily-quote-maker/QUALITY_POLICY.md`; 타임랩스/하이퍼랩스/저화질 업스케일 금지
-- 실사 사진을 사용한 GitHub Actions 테스트 성공: https://github.com/comfunnylj/Video-creator/actions/runs/40115310525
-- Google Sheets: https://docs.google.com/spreadsheets/d/1be-g64yNrQ6d3bAT-lopUpjZmDRBnhfe_1YAP674BjE/edit
-  - 문구DB: 65개 문장 (권리 판단은 사용자)
-  - 사진DB: 서울 사진 6개 (P001 사용 검수 완료, P002~P006 원본 검수 대기)
-  - 게시이력 탭은 실제 게시 URL 확인 후에만 갱신
-- Google Drive 결과물: https://drive.google.com/drive/folders/1dtgJ6i001xNdCklwWc8u9SJh6OUnFiYA
-- Google Drive Skill & Manual: https://drive.google.com/drive/folders/1bnoleQJiWi9Lz7jjbQnOfKUrC5U-1D_6
-- Threads quote 전용 입력 큐: `comfunnylj/telegram-market-feed/social-publisher/automation/quote.json`
-- Threads `quote` 태스크 2026-10-25에 enabled=true로 변경; 실제 Oracle bridge 응답에 quote.enabled=true / account genie_carrot / task error=null 확인.
-  - 실서버 read-only probe: https://github.com/comfunnylj/Video-creator/actions/runs/40142750048
-- ChatGPT recurring automation `Daily Quote Maker` 한국시간 매일 09:00 활성화 (아직 첫 실행 전).
+## 현재 상태: 디자인 검수 완료 / 자동 제작·게시 중단
+- 구현 커밋: https://github.com/comfunnylj/Video-creator/commit/1d1d6981e3a3db9ec5b2772b522b60a8c99d5e2a
+- GitHub Actions 회귀 테스트 성공: https://github.com/comfunnylj/Video-creator/actions/runs/40194080421
+- 로컬 회귀 테스트 16개 통과. 원본 사진 3종으로 4:5 3장과 선택 9:16 3장을 렌더하고 참고 비교·360px 미리보기·100% 디테일을 실제 확인했습니다.
+- 사진별 중앙/상단/측면 배치, 명조 서식과 JSON 설정, 독립 크롭, EXIF/ICC, 네이티브 픽셀/글리프/가독성/피사체 보호/출력 검사와 실패 복구를 구현했습니다.
+- 기본 출력은 1080×1350 sRGB JPEG 한 장이며 1080×1920은 명시한 경우만 추가합니다.
 
-## 아직 완료되지 않은 범위
-- Instagram 및 Threads에 Daily Quote Maker 명언을 **실제로 게시했다는 URL은 확인되지 않았습니다**.
-- 문구DB '게시 승인' 상태는 현재 초기 미승인 상태여서, 예약 작업은 승인 전 이미지/글 생성과 보관까지 진행하는 안전모드입니다.
-- 원본 사진 추가 5개는 검색 메타데이터 확인만 끝나고 실제 결과물 육안 검수 전입니다.
-- 기존 Google Docs 운영 문서 자체는 별도 존재하나, 사진DB 및 수신 활성화 변경사항의 문서 내 동기화는 추가 점검 필요.
+## 자동화 및 SNS
+- Daily Quote Maker 자동화 ID 6adce8c3eea08191be7dab5261338783: is_enabled=false 상태 확인, 재활성화하지 않음.
+- telegram-market-feed의 Threads quote 수신 작업만 enabled=false로 변경했습니다.
+- quote.json의 jobs=[] 확인. 서버 상태 조회에도 quote 작업이 없었습니다.
+- 기존 아침/저녁/에너지/쇼핑/기타/부동산 작업 설정은 변경 전과 동일함을 대조했습니다.
+- Instagram outbox는 수정하지 않았습니다. 이번 작업에서 Instagram/Threads 게시 또는 새 예약 작업을 생성하지 않았습니다.
+- 사용자가 완성 이미지 검수 후 재개를 지시하기 전에는 자동 제작·게시를 재개하지 않습니다.
 
-## 유지보수
-1. 문구 추가/수정: Google Sheets 문구DB, 사진 추가/검증: 사진DB
-2. 이미지 품질/타이포: `render_quote_card.py` + `QUALITY_POLICY.md`
-3. 운영 절차: `SKILL.md` 및 Google Drive 매뉴얼
-4. 자동 게시: 문구/이미지의 실제 게시 승인, 서버/계정 건강 상태, 중복 키, SNS 결과 permalink 모두 충족
-5. 코드 변경 뒤 GitHub Actions QA 실행 → 실제 제작본 확인 → Google Drive 보관 → 버전 번호 갱신
+## 데이터와 저장 검증
+- 기존 문구DB 65개, 사진DB 6행, 게시이력은 읽기만 했으며 수정하지 않았습니다.
+- 기존 Google Docs 스킬 원본·운영매뉴얼은 같은 ID로 v1.1 내용으로 갱신한 뒤 본문 버전·중단 규칙·구현 커밋을 재조회했습니다.
+- 스킬/정책/변경이력 원본 Markdown도 지정 Skill & Manual 폴더에 저장하고 메타데이터를 재조회했습니다.
+- 프로젝트 Output에 시안 JPEG 6장, 원본 사진 3장, 제작 JSON·캡션·비교판·원본 디테일·검수/테스트/릴리스 기록 등을 저장했습니다.
+- 최초 20개 결과 파일의 ID·크기·부모 폴더를 모두 재조회해 로컬 크기와 대조했고, 별도 storage_verification.json도 저장·재조회했습니다. 원격 체크섬 필드는 연결 도구가 노출하지 않으므로 원격 해시 검증을 주장하지 않습니다.
+- Output: https://drive.google.com/drive/folders/1hYu1BjrmtG3jBmDrOrRCr7aJpPgYOUPM
+- 매뉴얼: https://docs.google.com/document/d/1NI1Cc2Ovr3WC1ZBQ7eKC6QJvZLfCUJi2jjvAGpwox9w
+- 스킬 원본 문서: https://docs.google.com/document/d/1HFH5SGb0CpJsSI-XnpEjKLt4K_hkkRbYwujmSmHSA0I
+
+## 유지보수상 제한
+- 자동 배치 추천은 대비·질감·명시된 보호영역 기반 휴리스틱입니다. 피사체 의미나 감성 품질을 자동으로 보장하지 않습니다.
+- 같은 작업 폴더의 동시 렌더는 지원하지 않습니다. 작업별 출력 폴더를 분리하고 한 번에 한 실행을 사용합니다.
+- 출처 검증/시안 제작/사용자의 권리 판단/실제 SNS 게시는 별도 단계입니다. 모든 이번 시안은 NOT_PUBLISHED입니다.
