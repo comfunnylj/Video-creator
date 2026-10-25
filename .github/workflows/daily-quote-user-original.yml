@@ -1,0 +1,46 @@
+name: Daily Quote - User Original Mood Card
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  render:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'USER_ORIGINAL_QUOTE_TEST:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Korean fonts and Pillow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y fonts-noto-cjk
+          python -m pip install --disable-pip-version-check pillow
+      - name: Render genuine high-resolution seascape + selected poem
+        run: |
+          python daily-quote-maker/render_quote_card.py --job daily-quote-maker/examples/user_original_moon_dream_sample.json --output daily-quote-maker/outputs-user-original
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path('daily-quote-maker/outputs-user-original')
+          for k,dims in [('IG_4x5',(1080,1350)),('STORY_9x16',(1080,1920))]:
+            f=p/f'Q9999_daily_quote_{k}.jpg'
+            with Image.open(f) as im:
+              assert im.size==dims
+              assert f.stat().st_size>100000
+              print(k,im.size, f.stat().st_size)
+          PY
+      - name: Upload inspected sample deliverables
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-quote-real-photo-user-original
+          path: |
+            daily-quote-maker/outputs-user-original/*IG_4x5.jpg
+            daily-quote-maker/outputs-user-original/*STORY_9x16.jpg
+            daily-quote-maker/outputs-user-original/*provenance.json
+          if-no-files-found: error
+          retention-days: 14
