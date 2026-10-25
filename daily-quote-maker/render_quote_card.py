@@ -158,6 +158,8 @@ def layout(text, author, work, size, style):
             segments.append([line, font, y, 'quote']); y += round(fs * style['line_spacing'])
         y -= round(fs * style['line_spacing']) - fs
         for key, value in (('author', author), ('work', work)):
+            if not value.strip():
+                continue
             f = get_font(style[key]['font_size'], **kwargs); y += style[key]['gap']
             for line in wrap_text(value, draw, f, w * style['max_width']):
                 segments.append([line, f, y, key]); y += round(f.size * 1.4)
@@ -269,8 +271,20 @@ def render(src, outpath, quote, author, work, ratio, style):
 
 def run(job_path,output,config_path=None,formats=None):
     job=json.loads(job_path.read_text(encoding='utf-8'))
-    for field in ('quote','author','work'):
-        if not isinstance(job.get(field),str) or not job[field].strip(): raise ValueError(f'Nonempty {field} required')
+    if not isinstance(job.get('quote'),str) or not job['quote'].strip():
+        raise ValueError('Nonempty quote required')
+    user_original=job.get('user_original') is True
+    if user_original:
+        if not isinstance(job.get('author',''),str) or not isinstance(job.get('work',''),str):
+            raise ValueError('User original author/work must be strings if supplied')
+        if (job.get('author','').strip() or job.get('work','').strip()) and job.get('attribution_approved') is not True:
+            raise ValueError('Do not invent an attribution for user original text')
+        job.setdefault('author','')
+        job.setdefault('work','')
+    else:
+        for field in ('author','work'):
+            if not isinstance(job.get(field),str) or not job[field].strip():
+                raise ValueError(f'Nonempty {field} required')
     if not re.fullmatch(r'Q\d{4}',job.get('quote_id','')): raise ValueError('Quote ID Q0001 required')
     if job.get('source_verified') is not True: raise ValueError('Exact quotation source must be verified')
     settings=merge({},job.get('design',{}))
