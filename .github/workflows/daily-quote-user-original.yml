@@ -19,7 +19,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -qq -y fonts-noto-cjk
-          python -m pip install --disable-pip-version-check pillow
+          python -m pip install --disable-pip-version-check pillow fonttools
       - name: Render genuine high-resolution seascape + selected poem
         run: |
           python daily-quote-maker/render_quote_card.py --job daily-quote-maker/examples/user_original_moon_dream_sample.json --output daily-quote-maker/outputs-user-original
