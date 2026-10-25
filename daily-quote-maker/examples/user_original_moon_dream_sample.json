@@ -15,5 +15,22 @@
     "license_url": "https://www.pexels.com/license/",
     "timelapse": false,
     "ai_generated": false
+  },
+  "design": {
+    "output_formats": [
+      "4:5",
+      "9:16"
+    ],
+    "preset": "center",
+    "font_size": 38,
+    "min_font_size": 30,
+    "line_spacing": 1.7,
+    "color": "#f7f4ed",
+    "position": [
+      0.5,
+      0.39
+    ],
+    "max_width": 0.78,
+    "contrast_coverage_min": 0.8
   }
 }
