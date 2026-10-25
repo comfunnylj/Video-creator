@@ -1,57 +1,62 @@
 ---
 name: daily-quote-maker
-description: Create high-resolution poetic Korean/English quote cards and optional slow real-time landscape reels from verified literature and real photography; write concise Korean social captions; archive source and outputs; route approved posts to existing Instagram/Threads social publisher. Use for Daily Quote Maker, 명언 제조기, 문학 문구 카드, 한강 감성 사진/릴스.
-version: 1.0.0
+description: Create emotional photographic literature cards from verified Korean or translated quotations and genuine high-resolution photographs, with configurable center/upper/side typography, independent 4:5 and optional 9:16 crops, concise captions, visual QA and source archiving. Use for Daily Quote Maker, 명언제조기, 문학 문구 이미지. Publishing and scheduled production are paused pending explicit user resumption.
+version: 1.1.0
 ---
 
-# Daily Quote Maker v1.0 — living skill
+# Daily Quote Maker v1.1
 
-## 0. Source of truth
-- The editable Google Sheet is `Daily Quote Maker_명언·시·소설 문구 DB_v1`:
-  `https://docs.google.com/spreadsheets/d/1be-g64yNrQ6d3bAT-lopUpjZmDRBnhfe_1YAP674BjE/edit`.
-  It currently contains 65 IDs in the `문구DB` tab, with `게시이력` for verified publication URLs. Always **read it live** before selection. Never assume an old GitHub snapshot reflects later corrections.
-- The same Google Sheet now includes the **`사진DB`** tab (added 2026-10-25), with 6 initial real Seoul Pexels photographs, source pages, photographers, original native pixel dimensions, direct image URLs, source quality and review states. For unattended selection use only `제작 검수 완료` images; review other rows before use. Never mistake metadata verification for a visual crop/quality check.
-- Google Drive asset folder: `프로젝트/멀티미디어/명언제조기`,
-  `https://drive.google.com/drive/folders/1dtgJ6i001xNdCklwWc8u9SJh6OUnFiYA`.
-- Skill and manual canonical archive: `프로젝트/Skill & Manual/daily-quote-maker` (create and use this folder).
-- All files here are source/editable. Users may request changes anytime. Increment version and update GitHub + Drive copy; do not claim static account-level ChatGPT skill installation merely because files exist.
+## 0. Current operating state — PAUSED
+- Do not publish to Instagram or Threads, create a new scheduled task, or reactivate automation `6adce8c3eea08191be7dab5261338783` until the user reviews the actual images and explicitly requests resumption.
+- Keep `comfunnylj/telegram-market-feed/social-publisher/automation/tasks.json` task `quote.enabled=false`; verify `social-publisher/automation/quote.json` has an empty `jobs` array. Preserve every other task, existing Instagram queue, tokens and server configuration.
+- Rendering, testing, saving and preparing LOCAL payloads are separate from publication. Never mark a source quote approved or record an SNS success merely because an image exists.
 
-## 1. Content/editorial rules
-1. Select one literary excerpt or attributed quotation, balancing `힘`, `성취`, `위로` and avoiding recently used IDs.
-2. Verify author, original work, **exact source text** and context. Preserve the user's preferred Korean original when it exists. Keep modernized historical spellings distinct from verbatim quotations.
-3. User handles copyright evaluation separately. Do not filter source discovery solely by age of author. **Publication status is separate**: never turn source discovery alone into an approved live post.
-4. The card contains only the quote, then small author and work attribution. Do not put historical commentary, biographies, hashtags or long explanations on the artwork.
-5. Write a polished Korean caption of **2–4 short sentences**: author/work context, social or historical relevance if verified, one concise reflection; then optionally 2–4 suitable hashtags. Do not invent circumstances of composition or overconfident biographical details.
-6. No repeated quotes, misleading author attribution, invented source URLs or fabricated publication confirmations.
+## 1. Canonical files and live databases
+- Edit this existing repository and branch, never a duplicate skill/repository: `comfunnylj/Video-creator`, branch `claude/eloquent-hamilton-wvxqej`.
+- Skill: `.claude/skills/daily-quote-maker/SKILL.md`; implementation, quality policy, examples, tests and changelog: `daily-quote-maker/`.
+- Read the live Google Sheet before selecting content: https://docs.google.com/spreadsheets/d/1be-g64yNrQ6d3bAT-lopUpjZmDRBnhfe_1YAP674BjE/edit . Preserve all 65 IDs, `문구DB`, `사진DB`, approval columns and `게시이력`. Never replace it with an old snapshot.
+- Skill/manual archive: https://drive.google.com/drive/folders/1bnoleQJiWi9Lz7jjbQnOfKUrC5U-1D_6 . Update the existing two Docs in place rather than proliferating manuals.
+- Project: https://drive.google.com/drive/folders/1dtgJ6i001xNdCklwWc8u9SJh6OUnFiYA . Save finished JPEGs, captions and production/source records in its `Output` folder, ID `1hYu1BjrmtG3jBmDrOrRCr7aJpPgYOUPM`; read back metadata after saving.
 
-## 2. Photography (highest-priority aesthetic contract)
-- Read `daily-quote-maker/QUALITY_POLICY.md` first and follow it.
-- Prefer beautiful **real high-resolution, long-exposure still photography** with Seoul skyline/Han River, sky, mountain, city, rivers and seasonal landscapes. Search Unsplash, Pexels, Pixabay, Korean public sources. Use actual source files, not image query thumbnail or AI recreation, whenever requested.
-- Reject all timelapse, hyperlapse, accelerated or sped-up video.
-- Prefer original stills of at least 3000px long edge. Verify **actual original** pixels and sharpness, choose 4:5 1080×1350 for Instagram and Threads; for motion prefer vertical 9:16 1080×1920, only with naturally moving real-time footage and native resolution sufficient for the crop.
-- Original Pexels reel ID `37522118` from 2026-10-24 was rejected. Never reuse.
-- Text should be modest-sized Korean serif in soft white on dark background (or dark text on bright sky), placed central/upper-middle where there is breathing room. No synthetic decorative frames, large logos, decorative badges, big faces or tiny unreadable type. Human-review the final picture; compare examples user supplied.
-- Do not create visually unsatisfactory content just to meet schedule. If source crop fails, choose a better photograph or skip the day and report.
+## 2. Editorial contract
+- Balance 힘/성취/위로 over future approved production; preserve exact quote/author/work and source/context. Keep historical spelling modernization and original translation clearly distinguished from verbatim quotation.
+- On the card show only the literary excerpt, a distinctly smaller author and a concise work title. Put biography, context and hashtags in a separate 2–4 sentence caption.
+- Do not invent composition dates, motives or biographical circumstances. Avoid imposing a lesson or excessive emotion.
+- User rights evaluation and actual posting permission are separate from source accuracy. All v1.1 samples remain NOT_PUBLISHED.
 
-## 3. Technical outputs
-- Produce 1080×1350 RGB JPEG for Instagram (4:5) plus optional 1080×1920 for Reels; retain source page, photographer, original dimensions, source checksum, crop bounds and reproducible rendering parameters in JSON.
-- Use Pillow/ffmpeg as already present in Video-creator, but no forced upscaling of small/soft imagery. Render proper Korean fonts.
-- Avoid excessive compression. QA: text not clipped, 100% crop sharp, reliable source, all 4 corners clear of app UI where applicable, no spelling errors. Name `YYYYMMDD_Q<id>_short-title_IG.jpg`.
-- Return final image in chat, plus a short caption; archive verified files under the Google Drive folder. Maintain the spreadsheet's `게시이력` only when status is confirmed.
-- Production files should be modifiable: Python renderer, configurable JSON themes, quotes DB, image metadata.
+## 3. Photographic literature archive design
+Read `daily-quote-maker/QUALITY_POLICY.md` and compare actual user references before choosing a source.
+- Prefer real still photographs from Unsplash → Pexels → Pixabay → Wikimedia Commons → public archives/공공누리. Record page, photographer, license URL, actual decoded pixels and checksum.
+- Require at least 3000px long edge and enough native pixels AFTER each crop. No preview enlargement, artificial upscaling, heavy denoise or sharpening. An asserted resolution is not proof of sharpness.
+- Seek emotional fit, clear negative space and a viable crop rather than a spectacular tourism view. Warm sunset/lake, dark night paths, starry snow mountains, glimmering water and overcast city scenes are all valid; Seoul is not mandatory.
+- Long-exposure stills are welcome. Do not use time/hyperlapse video. Never reuse rejected Pexels ID `37522118`.
+- Preserve natural photographic color. No universal desaturation, darkening, contrast filter or middle shading. If text cannot be read, change position/color/crop/photo, not the whole photograph.
+- Center: center or slightly above, with distant sky. Upper: upper third, keeping lower subjects clear. Side: upper-right or lower-right negative space. Users may specify positions; `recommend=true` ranks candidate positions by local contrast, texture and explicitly protected subject rectangles. It does NOT understand semantic subjects; human inspection remains required.
+- Korean serif/Myeongjo first. Default quote 38px; quiet samples around 36px, brighter short text may use 44–52px. User-configurable range 28–72px; author/work 16–27px and always smaller than the minimum quote size. Judge at mobile width before approval.
+- White/ivory on dark areas, charcoal/black on bright areas. No frames, logo, badge, divider, text box, heavy shadow or outline. Shadows default to none; optional <=45/255 opacity, <=2px offset only.
 
-## 4. Automation / publishing adapters
-- **Instagram** currently uses `comfunnylj/telegram-market-feed/social-publisher/instagram/outbox.json`. Existing independent `instagram-publisher` accepts a SHA256-verified public immutable JPEG URL, size, caption, `media_type=image`, `approved=true`, account `genie_carrot`, stable `dedup_key` and not_before/expires_at. Existing status and tokens must not be changed without a safe migration. Never fabricate success. Follow that repo's `social-publisher/instagram-service/README.md`.
-- **Threads** currently uses `social-publisher/automation/tasks.json`, each registered task has its own outbox, and Oracle polls. Register a dedicated `quote` task and `social-publisher/automation/quote.json`. Check live bridge health/capabilities before enabling; follow `social-publisher/AUTOMATION.md`.
-- Public images for either publisher must be committed to GitHub and addressed via immutable commit-SHA raw.githubusercontent.com URL; verify exactly matching SHA256 and size before queueing. The social publisher must not interpret prepared/pending as published. Once the account returns a permalink and final published receipt, record it in `게시이력`. On unknown response avoid blind retry with a new ID.
-- The workflow may be run manually with a specifically reviewed source. To automate unattended daily publication, first create a **curated accepted photo bank** and initial tested scripts, establish credential-free or secured access to approved quote records, and confirm receipt reconciliation. If any of these cannot be verified, keep publication disabled and clearly show setup remaining rather than silently posting poor photos or publishing unapproved drafts.
-- Proposed time, Asia/Seoul: Instagram 09:00, Threads 09:10; schedule only after operational safeguards and queue readiness.
+## 4. Reproducible rendering
+Install Python 3.11+ dependencies from `daily-quote-maker/requirements.txt` and a Korean serif font (Noto Serif CJK or Nanum Myeongjo). Set `QUOTE_FONT_PATH` if not installed at an auto-detected path.
 
-### Safe publishing payload builder
-- `daily-quote-maker/build_publisher_payloads.py` prepares **local, non-submitted** Instagram and Threads job JSON payloads from an exact 4:5 JPEG, its provenance, an immutable already-committed GitHub raw URL, and an explicit `--approved-for-posting` gate. It validates real SHA256 and byte count, format, stable dedup IDs, KST timestamps and Threads UTF-16 text length; this does **not** itself enable the Oracle receiver, issue SNS publication or verify delivery.
-- Before publishing, check the confirmed Meta/Oracle receipt and Google Sheets approval state. The current dedicated Threads task was initially registered with `enabled=false` until that receipt can be verified. Avoid mutating existing Instagram outbox jobs.
+```bash
+python daily-quote-maker/render_quote_card.py --job daily-quote-maker/examples/A_warm_lake.json --output output/A
+python daily-quote-maker/render_quote_card.py --job daily-quote-maker/examples/B_star_mountain.json --output output/B --formats 4:5 9:16
+python daily-quote-maker/render_quote_card.py --job job.json --config daily-quote-maker/examples/design_config.json --output output/custom
+python -m unittest discover -s daily-quote-maker/tests -v
+```
 
-## 5. Maintenance
-- GitHub folder: `.claude/skills/daily-quote-maker/` is the skill; `daily-quote-maker/` holds code and quality docs.
-- User may revise fonts, photos, crops, channels, captions, author biographies, schedule or categories at any time. Make targeted changes, run tests, update version, and re-archive `Skill & Manual`; preserve previous release for rollback.
-- Never post arbitrary new copyright assumptions: user's rights judgments are separate; maintain a clear user approval column for actual publishing.
+- Default output is ONE 1080×1350 4:5 sRGB JPEG at quality 96, 4:4:4. Request 9:16 explicitly via `--formats 4:5 9:16`; independently crop the oriented original and reflow type, never stretch the feed image.
+- Existing quote/job and publisher provenance fields remain compatible. `photo.local_path` optionally uses an already downloaded original while retaining provenance. `design.style` is shared; `design.formats['9:16']` overrides only that ratio. An external `--config` JSON overrides inline design. CLI `--formats` overrides the config's `output_formats`.
+- Adjust font, size, color, position, alignment, line_spacing, quote width, author/work formatting, crop_center, safe margins and protected_regions in JSON, never Python for routine design changes. See `examples/design_config.json` and `OPERATING_MANUAL.md` for units and examples.
+- EXIF rotation precedes crop and subject coordinates. Embedded ICC converts to sRGB; untagged images are explicitly recorded as assumed sRGB. Decode actual pixels, validate glyph coverage, reject transparency, inspect output bytes/dimensions/profile and record all text boxes, crop bounds, font path, contrast, hashes and effective settings.
+- Readability gate: each line's actual glyph interiors must have at least 88% samples with contrast >=3:1. Record p10 contrast and coverage; this photographic heuristic is not a WCAG compliance claim and does not replace mobile visual review.
+- Render all requested formats and metadata into staging before installing the batch. Failed rendering preserves previous outputs; successful feed-only rerender removes stale same-quote story exports. Use a separate output directory per job.
+
+## 5. Required visual review and saving
+- Open full-size final JPEGs, mobile-width previews and 100% source/crop details. Compare references side by side. Inspect quote size, spacing, emotional fit, visible detail, subject preservation, attribution and source accuracy.
+- Code success is not visual approval. Write a separate review record with evidence, adjustments and limitations. Generated provenance starts with `visual_review=REQUIRED`; a reviewer must record the actual result. Never fabricate passing QA.
+- Preserve source/checksum, resolved style and plain captions with outputs. Source photos are evidence, not social posting approval. Archive real files then read back Drive metadata (parent, dimensions/size, modified time).
+- `build_publisher_payloads.py` remains a local, non-submitting adapter. Its explicit approval flag and pinned SHA URL validation still apply when the user later resumes posting. No queue writes in this paused release.
+
+## 6. Maintenance / rollback
+Keep SKILL, QUALITY_POLICY, renderer, example JSON, tests, workflows and Drive manual on version 1.1.0. Run regression tests and real-photo QA after relevant changes. Record changes/test results in CHANGELOG; use Git history for v1.0 restoration, preserving databases and other workflows. Do not claim that a repository skill is account-level ChatGPT installation.

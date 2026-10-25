@@ -1,0 +1,56 @@
+{
+  "quote_id": "Q0036",
+  "quote": "떠날 때에\n다시 만날 것을\n믿습니다.",
+  "author": "한용운",
+  "work": "님의 침묵",
+  "quote_reference": "https://ko.wikisource.org/wiki/님의_침묵/님의_침묵",
+  "source_verified": true,
+  "caption": "한용운의 「님의 침묵」에서 이별 속에서도 다시 만날 것을 믿는 대목을 골랐습니다. 이미지에는 기존 문구 DB의 현대어 표기를 사용했습니다.",
+  "photo": {
+    "source_url": "https://unsplash.com/photos/sparkling-sunlight-on-dark-teal-ocean-waves-bCaEKOnl-uk",
+    "download_url": "https://images.unsplash.com/photo-1760800579795-d9f40ed008d3?fm=jpg&q=98",
+    "photographer": "mathieu gauzy",
+    "license_url": "https://unsplash.com/license",
+    "timelapse": false,
+    "ai_generated": false
+  },
+  "design": {
+    "style": {
+      "preset": "side",
+      "position": [
+        0.72,
+        0.64
+      ],
+      "font_size": 36,
+      "min_font_size": 30,
+      "max_width": 0.38,
+      "color": "#f9f6ee",
+      "line_spacing": 1.65,
+      "crop_center": [
+        0.6,
+        0.4
+      ],
+      "author": {
+        "font_size": 20,
+        "gap": 32
+      },
+      "work": {
+        "font_size": 17,
+        "gap": 12
+      }
+    },
+    "formats": {
+      "9:16": {
+        "position": [
+          0.72,
+          0.63
+        ],
+        "crop_center": [
+          0.58,
+          0.5
+        ],
+        "max_width": 0.4
+      }
+    }
+  }
+}

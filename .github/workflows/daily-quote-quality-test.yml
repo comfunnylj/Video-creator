@@ -1,44 +1,45 @@
-name: Daily Quote Maker - Quality Test
+name: Daily Quote Maker v1.1 - Quality Test
 on:
+  push:
+    paths: ['daily-quote-maker/**', '.claude/skills/daily-quote-maker/**', '.github/workflows/daily-quote-quality-test.yml']
+  pull_request:
+    paths: ['daily-quote-maker/**', '.claude/skills/daily-quote-maker/**', '.github/workflows/daily-quote-quality-test.yml']
   workflow_dispatch:
-  issues:
-    types: [opened]
+    inputs:
+      render_samples:
+        description: 'Manually render real photo samples (never publishes)'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
-  render:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'DAILY_QUOTE_TEST:')
+  regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install Pillow, Korean serif fonts
+      - name: Install dependencies and Korean serif font
         run: |
           sudo apt-get update -qq
           sudo apt-get install -qq -y fonts-noto-cjk
-          python -m pip install --disable-pip-version-check pillow
-      - name: Render and validate real long-exposure Seoul photo
+          python -m pip install -r daily-quote-maker/requirements.txt
+      - name: Offline regression (synthetic fixtures are not production photos)
+        run: python -m unittest discover -s daily-quote-maker/tests -v
+      - name: Manual real-photo samples, both independent crops
+        if: github.event_name == 'workflow_dispatch' && inputs.render_samples == true
         run: |
-          python daily-quote-maker/render_quote_card.py --job daily-quote-maker/examples/seoul_andohyeon_sample.json --output daily-quote-maker/outputs
-          python - <<'PY'
-          from PIL import Image
-          from pathlib import Path
-          p=Path('daily-quote-maker/outputs/Q0061_daily_quote_IG_4x5.jpg')
-          im=Image.open(p)
-          assert im.size==(1080,1350), im.size
-          assert p.stat().st_size>100000, p.stat().st_size
-          print('OK',im.size,p.stat().st_size)
-          PY
-      - name: Upload artifact (sample only; no social publishing)
-        uses: actions/upload-artifact@v4
+          for name in A_warm_lake B_star_mountain C_shimmering_water; do
+            python daily-quote-maker/render_quote_card.py --job daily-quote-maker/examples/$name.json --output output/$name --formats 4:5 9:16
+          done
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch' && inputs.render_samples == true
         with:
-          name: daily-quote-maker-v1-sample
+          name: daily-quote-maker-v1.1-review-only
           path: |
-            daily-quote-maker/outputs/*IG_4x5.jpg
-            daily-quote-maker/outputs/*STORY_9x16.jpg
-            daily-quote-maker/outputs/*_provenance.json
+            output/**/*.jpg
+            output/**/*_provenance.json
           if-no-files-found: error
           retention-days: 14

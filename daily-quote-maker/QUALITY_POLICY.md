@@ -1,23 +1,42 @@
-# Daily Quote Maker | Visual Source Quality Policy (2026-10-24)
+# Daily Quote Maker 1.1.0 — 사진 선정·디자인·품질 검수
 
-## Standing visual preferences
-- **Premium photographic look, not social-media stock filler.**
-- Prioritize actual photographs from Unsplash, Pexels, Pixabay, public archives; keep original page, author and source file.
-- **Absolutely no timelapse, hyperlapse, fast-forwarded/accelerated clouds or traffic, repeated loops, or speed ramps** for Daily Quote background footage.
-- Prefer **long-exposure still photography** for Seoul skylines, riverside night views, slow-shutter light trails, or subdued static cityscapes. A static composition is better than an unconvincing low-quality video.
-- Video is acceptable only when true real-time nature is visually reviewed: gentle water, clouds, distant traffic, foliage or ambient city movement at normal pace. If unsure, select a still photograph.
-- **No upscale presented as HD/4K.** Inspect original native source resolution (not export resolution). Final vertical reel is 1080×1920. For landscape-source 9:16 cropping, minimum original ≈3840×2160, preferred 4K or higher. Native-portrait ≥1080×1920 accepted if sharp, higher-res preferred.
-- Still images: favor ≥3000 px long side and enough *native* pixels for final 1080×1350 4:5 or 1080×1920 9:16 crop. Favor long-exposure photographs when appropriate.
-- Reject footage with visible blocking, excessive noise/grain, compression, shaky camera, busy effects, synthetic detail, or poor cropping. 4K alone does not imply aesthetic quality.
-- Minimal, refined Korean typography centered around upper-middle to center in whitespace. Small author/work text beneath, no decor, large logos, black bars, or long explanations on image. Save full historical/context prose for post caption (2–4 short sentences).
-- Encode high-quality H.264 at ~CRF18 with fixed 30fps without artificially accelerating frames. Validate dimensions/frames and compare screenshots from different seconds to verify gentle motion.
-- The **2026-10-24 Pexels video ID 37522118 is REJECTED / deprecated** following user feedback. Do not reuse it or treat its prior generated MP4 as approved design reference.
-- Do not publish without user request. Preserve rejected earlier prototype as an archive only if desired, never recycle it into new content.
+기준일: 2026-10-25. 콘셉트: 감성 사진 아카이브형 문학 콘텐츠. 자동 제작·SNS 게시 중단 유지.
 
-## QA checklist
-1. Verify original photographer / exact source page / Seoul location / native file dimensions, before selecting media.
-2. Watch at normal speed and confirm no timelapse/hyperlapse; this check cannot be replaced by metadata inspection.
-3. Inspect original at 100% and planned 9:16 crop before rendering.
-4. Produce only if source quality passes. Otherwise switch to premium long-exposure still rather than forcing video.
-5. Inspect 0s, 2s, 5s, 8s, 9s frames and full reel. Text remains centered, readable and not overly large.
-6. Archive approved finished image/video and provenance in Google Drive > 프로젝트 > 멀티미디어 > 명언제조기.
+## 사진을 먼저 고른다
+1. Unsplash, Pexels, Pixabay, Wikimedia Commons, 공공누리/공개 아카이브 순으로 실제 원본 사진을 찾는다. 페이지·촬영자·라이선스와 조건·파일 주소를 기록한다. 공개 접근 가능하다는 사실만으로 자유 이용을 단정하지 않는다.
+2. 원본의 긴 변은 3000px 이상, 각 최종 크롭은 출력보다 큰 네이티브 픽셀을 확보한다. EXIF 회전 후 실제 크기를 사용한다. 작은 미리보기·스크린샷 확대, 인위적 업스케일·강한 노이즈 제거·과도한 샤프닝 금지.
+3. 사진은 관광 포스터의 화려함보다 문구와 정서가 맞는지, 여백이 있는지, 세로 크롭 후 주제가 남는지를 평가한다. 따뜻한 호수 노을, 별밤의 설산, 밤길의 불빛, 반짝이는 물결, 흐린 도시 모두 가능하다.
+4. 장노출 정지사진은 적극 활용하되, 시간 배속 영상·타임랩스·하이퍼랩스는 제외한다. Pexels 영상 ID 37522118은 항상 금지한다. 사진의 실제 촬영 여부는 작가 설명/카메라 정보와 육안 검수를 함께 기록한다. AI 생성 의심 또는 출처 불명확 사진은 보류한다.
+5. 원본 전체, 주요 부위의 100% 픽셀, 4:5/선택 9:16 크롭을 확인한다. 해상도가 높아도 번짐·압축·구도 불량이면 제외한다. 사진을 일괄 탈색하거나 어둡게 하지 않는다.
+
+## 사진별 디자인
+- A 중앙형: 중앙 또는 약간 위, 원경·하늘의 여백 활용.
+- B 상단형: 상단 1/3, 하단의 산·도시·바다 피사체 보존.
+- C 측면형: 우측 위/아래 여백, 물결 등 중심 피사체를 가리지 않는 구성.
+- 명조 계열 한글 글꼴 우선. 조용한 본문은 보통 36–40px, 밝은 사진의 짧은 문구는 44–52px도 허용한다. 단순히 작게 만드는 것이 목표가 아니다. 작은 저자/작품명이 본문과 경쟁하지 않게 한다.
+- 흰색·아이보리·짙은 회색·검정을 사진에 맞춰 선택한다. 투명 글자는 금지한다. 외곽선·강한 그림자·로고·장식·테두리·박스·구분선은 사용하지 않는다. 약한 그림자는 필요한 경우만 <=45/255, 이동 <=2px.
+- 문구·저자·작품명만 이미지에 표시한다. 소개/해설/감상은 별도 본문 2–4문장으로 둔다.
+- 수동 위치 지정이 우선이다. 추천은 로컬 대비와 질감, 사람이 지정한 피사체 보호 사각형만 활용한다. 자동 의미 인식이나 작품 수준을 보장한다고 주장하지 않는다.
+
+## 출력과 코드의 필수 게이트
+- 기본: 1080×1350, 4:5, RGB+sRGB ICC JPEG, quality 96/subsampling 0. 블랙바/인위적 빈 여백 금지. 원본 비율 유지 크롭만 허용.
+- 선택: 1080×1920, 9:16. 원본에서 별도 크롭·재배치. 기본 명령으로 강제 생성하지 않는다.
+- JSON에 글꼴·크기·색·위치·정렬·행간·출처 서식·크롭 중심·안전여백·피사체 보호영역을 분리한다.
+- EXIF, 실제 픽셀, 폰트 글리프, 네이티브 크롭, 안전여백, 보호영역, JPEG 디코드/규격/ICC, SHA256를 검증한다. 모든 요청 형식이 성공한 다음 원자적 파일 교체를 시도하며 오류 시 이전 출력으로 복구한다.
+- 실제 글자 내부 픽셀에서 각 행의 대비 >=3:1인 비율을 계산하고 최소 88%를 요구한다. p10 대비·질감도 함께 기록한다. 이는 사진용 휴리스틱이며 WCAG 인증이나 가독성의 충분조건은 아니다.
+- 자동 게이트가 실패하면 위치·색·크롭·사진을 바꾼다. 전체 사진을 어둡게 만들어 통과시키지 않는다.
+
+## 육안 검수 체크리스트
+각 항목을 실제 이미지와 함께 기록한다. 코드 성공만으로 통과 표기하지 않는다.
+- 참고 이미지와 나란히 비교했는가? 참고 이미지의 검은 화면 테두리는 화면 캡처 요소이며 재현하지 않는다.
+- 문구가 사진을 압도하지 않으며 너무 작지도 않은가? 360px 모바일 폭에서 읽어 보았는가?
+- 자연스러운 줄바꿈/행간/저자와 작품명 서열인가?
+- 글자 주변에 충분한 여백이 있고 핵심 피사체를 가리지 않는가?
+- 사진과 문구의 정서가 어울리는가? 사진 촬영지와 작품 속 장소를 혼동하지 않는가?
+- 100% 원본의 디테일이 충분하며 최종 파일이 흐리거나 인공적이지 않은가?
+- 출처·촬영자·라이선스·원본 실제 해상도를 확인했는가?
+- 9:16이 별도로 크롭됐고 읽히는가? 지정하지 않은 경우 생성되지 않는가?
+- 제작기록·캡션·JPEG를 Output에 저장하고 파일 ID/부모/크기 등을 재조회했는가?
+- NOT_PUBLISHED 상태인가? 예약 자동화 중단, quote.enabled=false, 빈 quote 큐를 확인했는가?
+
+v1.1 시안은 개인적·비상업적 검수용이다. 샘플 제작 승인은 SNS 공개 승인이 아니다. 문구DB 65개·사진DB·게시이력은 보존한다.

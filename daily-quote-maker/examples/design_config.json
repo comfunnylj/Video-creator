@@ -1,0 +1,26 @@
+{
+  "output_formats": ["4:5"],
+  "style": {
+    "preset": "center",
+    "font_size": 38,
+    "min_font_size": 30,
+    "color": "auto",
+    "position": [0.5, 0.43],
+    "max_width": 0.78,
+    "align": "center",
+    "line_spacing": 1.65,
+    "safe_margin": 0.075,
+    "crop_center": [0.5, 0.5],
+    "protected_regions": [],
+    "recommend": false,
+    "author": {"font_size": 21, "color": "auto", "gap": 28},
+    "work": {"font_size": 18, "color": "auto", "gap": 12},
+    "shadow_opacity": 0,
+    "shadow_offset": [0, 1],
+    "contrast_min": 3.0,
+    "contrast_coverage_min": 0.88
+  },
+  "formats": {
+    "9:16": {"position": [0.5, 0.28], "crop_center": [0.5, 0.45]}
+  }
+}

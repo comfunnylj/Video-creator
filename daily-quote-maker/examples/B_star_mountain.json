@@ -1,0 +1,63 @@
+{
+  "quote_id": "Q0039",
+  "quote": "아직 나의 청춘이\n다하지 않은 까닭입니다.",
+  "author": "윤동주",
+  "work": "별 헤는 밤",
+  "quote_reference": "https://ko.wikisource.org/wiki/하늘과_바람과_별과_시_(1948년)/별_헤는_밤",
+  "source_verified": true,
+  "caption": "윤동주의 「별 헤는 밤」에서 아직 다 헤지 못한 별들을 이야기하는 대목입니다. 1948년 시집의 ‘靑春’을 기존 문구 DB에 따라 ‘청춘’으로 표기했습니다.",
+  "photo": {
+    "source_url": "https://unsplash.com/photos/the-night-sky-with-stars-above-a-snowy-mountain--YFE6ThVMjU",
+    "download_url": "https://images.unsplash.com/photo-1729595404256-dcc92f77c54a?fm=jpg&q=98",
+    "photographer": "Elijah Grimm",
+    "license_url": "https://unsplash.com/license",
+    "timelapse": false,
+    "ai_generated": false
+  },
+  "design": {
+    "style": {
+      "preset": "upper",
+      "position": [
+        0.5,
+        0.28
+      ],
+      "font_size": 36,
+      "min_font_size": 32,
+      "max_width": 0.76,
+      "color": "#f5f3ec",
+      "line_spacing": 1.7,
+      "crop_center": [
+        0.52,
+        0.43
+      ],
+      "protected_regions": [
+        [
+          0.3,
+          0.81,
+          0.65,
+          0.89
+        ]
+      ],
+      "author": {
+        "font_size": 20,
+        "gap": 30
+      },
+      "work": {
+        "font_size": 17,
+        "gap": 12
+      }
+    },
+    "formats": {
+      "9:16": {
+        "position": [
+          0.5,
+          0.27
+        ],
+        "crop_center": [
+          0.5,
+          0.5
+        ]
+      }
+    }
+  }
+}
