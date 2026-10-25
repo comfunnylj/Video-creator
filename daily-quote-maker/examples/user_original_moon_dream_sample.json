@@ -21,20 +21,22 @@
       "4:5",
       "9:16"
     ],
-    "preset": "center",
-    "font_size": 38,
-    "min_font_size": 30,
-    "line_spacing": 1.7,
-    "color": "#f7f4ed",
-    "position": [
-      0.5,
-      0.39
-    ],
-    "max_width": 0.78,
-    "contrast_coverage_min": 0.8,
-    "crop_center": [
-      0.5,
-      0.015
-    ]
+    "style": {
+      "preset": "center",
+      "font_size": 38,
+      "min_font_size": 30,
+      "line_spacing": 1.7,
+      "color": "#f7f4ed",
+      "position": [
+        0.5,
+        0.43
+      ],
+      "max_width": 0.78,
+      "contrast_coverage_min": 0.8,
+      "crop_center": [
+        0.5,
+        0
+      ]
+    }
   }
 }
