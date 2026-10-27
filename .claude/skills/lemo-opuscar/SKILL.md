@@ -68,6 +68,16 @@ The second approach installs into **Claude Code**, not this ChatGPT account. Bot
 - "데이터 스토리텔링 스타일로 유가 차트를 움직이는 영상으로 만들어 줘."
 - "코드로 제작하는 고정 스타일을 내 채널에 맞게 만들어 저장해 줘."
 
+## Verified GitHub Actions execution path (separate from Oracle)
+
+This repository also has a dedicated **upstream-renderer sample workflow** at `.github/workflows/lemo-opuscar-steampunk.yml` with documentation at `lemo-opuscar-projects/README.md`.
+
+When the user asks to execute or rerun the original Lemo-Opuscar sample with GitHub Actions, use the connected GitHub plugin to run on the repo's **default branch**. For a remotely triggered test, GitHub Issue #22 has a body beginning with `LEMO_STEAMPUNK_V1`; edit that issue body to retrigger the owner-only `issues: edited` event (or use the Actions UI's `workflow_dispatch` manually). Read the new run's job steps/logs and artifact after the run completes. Report a rendered film only if the H.264/AAC MP4 and ffprobe checks both passed; otherwise report what actually succeeded and diagnose the error.
+
+The sample uses upstream `core/render/still.mjs`, `core/render/video.mjs`, upstream `mux.sh` with validated FFmpeg fallback for a documented WAV-duration check mismatch. The original film is a Three.js diorama in `lemo-opuscar-projects/steampunk-hd2d/index.html` with original synth score; it is **not** upstream sample footage. It targets 10s, 800×450 at 24 fps for a software-WebGL smoke test and produces the GitHub Actions artifact `lemo-steampunk-hd2d-original` (14-day retention).
+
+This is an **existing authored film runner**, not a general autonomous prompt-to-video agent. A future project that composes brand-new scenes from natural language still needs an authorized coding-agent orchestration layer. Never touch Oracle, Social Publisher, or any external posting workflow for this skill unless the user separately instructs it.
+
 ## Verification and maintenance
 
 On updates, inspect upstream changes to `README.md`, `AGENTS.md`, `TECHNIQUE.md` and `styles/README.md`; do not silently change existing videos or other skills. Keep any renderer integration separate and test an end-to-end MP4 before declaring production-ready.
