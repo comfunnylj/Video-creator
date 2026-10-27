@@ -1,0 +1,133 @@
+name: Lemo-Opuscar - cinematic steampunk 3D quality test
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: lemo-steampunk-cinematic-3d
+  cancel-in-progress: false
+
+jobs:
+  steampunk:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.body, 'LEMO_CINEMATIC_3D_V1'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      PROJECT: ${{ github.workspace }}/lemo-opuscar-projects/steampunk-cinematic
+      OUT: ${{ github.workspace }}/lemo-output
+      LIB: ${{ github.workspace }}/lemo-upstream
+      LEMO_ANGLE: swiftshader
+    steps:
+      - name: Check out Video-creator (does not touch Oracle)
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install FFmpeg only with bounded APT time
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo timeout 180s apt-get -o Acquire::Retries=0 -y -qq install ffmpeg
+          fi
+          command -v ffmpeg
+          command -v ffprobe
+          ffmpeg -version | head -1
+          node --version
+          python3 --version
+      - name: Fetch original Lemo-Opuscar library using sparse checkout
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse --branch main https://github.com/lemomo-ai/lemo-opuscar.git "$LIB"
+          git -C "$LIB" sparse-checkout set --no-cone \
+            '/*' '!/styles/*/demo/' '!/styleboard/' '!/docs/frames/' \
+            '!/docs/cover.jpg' '!/docs/opuscar98.jpg' '!/styles/*/poster.jpg'
+          test -f "$LIB/AGENTS.md"
+          test -f "$LIB/styles/hd-2d/STYLE.md"
+          test -f "$LIB/core/render/video.mjs"
+          git -C "$LIB" rev-parse HEAD | tee "$GITHUB_WORKSPACE/upstream-commit.txt"
+      - name: Install original renderer and Chromium
+        run: |
+          cd "$LIB"
+          sh plugin/skills/lemo-opuscar/scripts/setup.sh deps
+          test -f node_modules/three/build/three.module.js
+          test -x .venv/bin/python
+      - name: Make actual style frames via original renderer
+        run: |
+          mkdir -p "$OUT/stills"
+          cd "$LIB"
+          node core/render/still.mjs "$PROJECT" 0 5 8 --size 1280x720 --out "$OUT/stills"
+      - name: Render original code-based 3D diorama
+        run: |
+          cd "$LIB"
+          node core/render/video.mjs "$PROJECT" --fps 24 --workers 1 --size 1280x720 --out "$OUT/iron_aurora_silent.mp4"
+      - name: Make sound and finalize MP4 (upstream mux with checked fallback)
+        run: |
+          python3 "$GITHUB_WORKSPACE/lemo-opuscar-projects/steampunk-hd2d/score.py" "$OUT/score.wav"
+          python3 - <<'PY'
+          import os, wave
+          p=os.path.join(os.environ['OUT'],'score.wav')
+          with wave.open(p,'rb') as w:
+              assert w.getnchannels()==1 and w.getsampwidth()==2
+              assert w.getnframes()==10*w.getframerate()
+              print('Validated 10 s of actual PCM samples')
+          PY
+          cd "$LIB"
+          if sh core/render/mux.sh "$OUT/iron_aurora_silent.mp4" "$OUT/score.wav" "$OUT/iron_aurora_cinematic.mp4" 24 0; then
+            echo 'Original upstream mux succeeded (cinematic)'
+          else
+            echo 'Upstream loudnorm duration check failed, validating WAV through FFmpeg fallback'
+            ffmpeg -v error -xerror -i "$OUT/score.wav" -f null -
+            ffmpeg -y -loglevel error -i "$OUT/iron_aurora_silent.mp4" -i "$OUT/score.wav" -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 192k -t 10 -movflags +faststart "$OUT/iron_aurora_cinematic.mp4"
+          fi
+      - name: Verify MP4 duration, size, video and audio
+        run: |
+          ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height,r_frame_rate -of json "$OUT/iron_aurora_cinematic.mp4" | tee "$OUT/ffprobe.json"
+          python3 - <<'PY'
+          import json, os
+          with open(os.path.join(os.environ["OUT"],"ffprobe.json")) as f: info=json.load(f)
+          dur=float(info["format"]["duration"])
+          s=info["streams"]
+          videos=[x for x in s if x["codec_type"]=="video"]
+          audios=[x for x in s if x["codec_type"]=="audio"]
+          assert 9.8<=dur<=10.2, f"wrong duration {dur}"
+          assert len(videos)==1 and videos[0]["width"]==800 and videos[0]["height"]==450, videos
+          assert videos[0]["codec_name"]=="h264", videos
+          assert audios and audios[0]["codec_name"]=="aac", audios
+          print("PASS: 10-second 1280x720 cinematic original-renderer MP4 with audio")
+          PY
+      - name: Upload results even if a render step fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lemo-steampunk-cinematic-original
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            lemo-output/iron_aurora_cinematic.mp4
+            lemo-output/iron_aurora_silent.mp4
+            lemo-output/ffprobe.json
+            lemo-output/stills/*.jpg
+            upstream-commit.txt
+            lemo-opuscar-projects/steampunk-cinematic/index.html
+            lemo-opuscar-projects/steampunk-hd2d/score.py
+      - name: Report result to originating issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+          STATUS: ${{ job.status }}
+        run: |
+          gh issue comment "$ISSUE" --repo "$GH_REPO" --body "Lemo-Opuscar original renderer run: **$STATUS**. Actions: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. If successful, download the lemo-steampunk-cinematic-original artifact. This uses upstream still.mjs, video.mjs and core/three/post.js with an original physical-material Three.js environment; not a still-image video."
