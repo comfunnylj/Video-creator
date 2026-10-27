@@ -37,14 +37,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify runner system dependencies without APT
+      - name: Install FFmpeg only with bounded APT time
         run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo timeout 180s apt-get -o Acquire::Retries=0 -y -qq install ffmpeg
+          fi
           command -v ffmpeg
           command -v ffprobe
-          command -v git
+          ffmpeg -version | head -1
           node --version
           python3 --version
-          echo 'No APT network install: use GitHub Ubuntu preinstalled FFmpeg and browser libraries'
       - name: Fetch original Lemo-Opuscar library using sparse checkout
         run: |
           git clone --depth 1 --filter=blob:none --sparse --branch main https://github.com/lemomo-ai/lemo-opuscar.git "$LIB"
