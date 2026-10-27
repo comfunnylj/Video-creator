@@ -11,22 +11,22 @@ import {makePost} from '/core/three/post.js';
 const W=innerWidth,H=innerHeight, TAU=6.28318530718;
 const scene=new THREE.Scene();
 scene.background=new THREE.Color('#15171d');
-scene.fog=new THREE.FogExp2('#34323b',0.016);
+scene.fog=new THREE.FogExp2('#1f2830',0.014);
 const camera=new THREE.PerspectiveCamera(39,W/H,.08,160);
 const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(1);renderer.setSize(W,H);
-renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.24;
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.88;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 const pmrem=new THREE.PMREMGenerator(renderer);
 const env=pmrem.fromScene(new RoomEnvironment(),.04);
-scene.environment=env.texture;scene.environmentIntensity=.95;
+scene.environment=env.texture;scene.environmentIntensity=.60;
 const P=(color,metalness=.6,roughness=.38,extra={})=>new THREE.MeshPhysicalMaterial({color,metalness,roughness,clearcoat:.4,clearcoatRoughness:.23,...extra});
 const brass=P('#b38a48',.91,.21),gold=P('#dbc082',.95,.17),aged=P('#6c5133',.88,.45);
 const darkbronze=P('#4b3528',.92,.31),copper=P('#a7653c',.9,.29),patina=P('#54716a',.82,.52),chrome=P('#959a9b',.93,.16);
 const steel=P('#272e35',.9,.37),gunmetal=P('#141a1c',.95,.28),porcelain=P('#e0d2aa',.06,.30);
 const ember=P('#ffce83',.23,.19,{emissive:'#ff8425',emissiveIntensity:2.6}),coldLight=P('#b2e7fa',.1,.17,{emissive:'#7cc7f0',emissiveIntensity:2.2});
-const stone=P('#393c41',.07,.88),groundMat=P('#26282d',.36,.22);
+const stone=P('#252b31',.07,.94),groundMat=P('#26282d',.36,.22);
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 const cylinder=(rt,rb,h,n=48)=>new THREE.CylinderGeometry(rt,rb,h,n);
 function add(parent,geo,material,pos,rot){const m=new THREE.Mesh(geo,material);m.position.set(...pos);if(rot)m.rotation.set(...rot);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
@@ -59,16 +59,16 @@ chrome.map=metalScratches;chrome.color.set('#f3f5f9');chrome.needsUpdate=true;
 
 // textured brick-and-cast-iron workshop
 function bricks(){
- const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.fillStyle='#151519';g.fillRect(0,0,512,512);
+ const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');g.fillStyle='#101317';g.fillRect(0,0,512,512);
  for(let y=0;y<512;y+=36)for(let x=0;x<512;x+=86){let o=(Math.floor(y/36)%2)*43;
- const v=Math.floor(seeded(x*2+y*21)*35);
- g.fillStyle=`rgb(${59+v},${55+v},${52+v})`;
+ const v=Math.floor(seeded(x*2+y*21)*25);
+ g.fillStyle=`rgb(${27+v},${31+v},${35+v})`;
  g.fillRect((x+o)%512,y,83,33);
  g.fillStyle='rgba(5,6,8,.4)';g.fillRect((x+o)%512,y+30,83,3);
  }
  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(4,2);t.colorSpace=THREE.SRGBColorSpace;return t;
 }
-const brickMat=new THREE.MeshStandardMaterial({map:bricks(),roughness:.93,metalness:0});
+const brickMat=new THREE.MeshStandardMaterial({map:bricks(),roughness:.94,metalness:0,color:'#778391'});
 bx(scene,0,10,-11,36,22,1.2,brickMat);
 bx(scene,0,-.38,0,34,.75,27,stone);
 bx(scene,0,.02,0,31,.065,25,groundMat);
@@ -234,16 +234,16 @@ function lamp(x,y,z){
  return light;
 }
 lamp(-9.4,6.5,3);lamp(9.4,6.5,3);
-const hemi=new THREE.HemisphereLight('#c4d5e6','#69492c',1.15);scene.add(hemi);
-const key=new THREE.DirectionalLight('#ffdab2',3.9);key.position.set(-6,17,11);
+const hemi=new THREE.HemisphereLight('#7d91aa','#34261e',.54);scene.add(hemi);
+const key=new THREE.DirectionalLight('#ffc58e',2.2);key.position.set(-6,17,11);
 key.castShadow=true;key.shadow.mapSize.set(1536,1536);
 key.shadow.camera.left=-19;key.shadow.camera.right=19;key.shadow.camera.top=21;key.shadow.camera.bottom=-21;
 key.shadow.camera.near=.1;key.shadow.camera.far=65;key.shadow.bias=-.00015;
 scene.add(key);
-const rim=new THREE.DirectionalLight('#79aec8',2.0);rim.position.set(7,12,-3);scene.add(rim);
-const warmA=new THREE.PointLight('#ffa957',19,16,1.8);warmA.position.set(-7,8,8);scene.add(warmA);
-const warmB=new THREE.PointLight('#ffc278',12,14,1.8);warmB.position.set(6,11,9);scene.add(warmB);
-const blue=new THREE.PointLight('#91d9ff',7,9,2);blue.position.set(0,11,5);scene.add(blue);
+const rim=new THREE.DirectionalLight('#5d99bb',1.3);rim.position.set(7,12,-3);scene.add(rim);
+const warmA=new THREE.PointLight('#ff9541',13,15,1.8);warmA.position.set(-7,8,8);scene.add(warmA);
+const warmB=new THREE.PointLight('#ffc278',8,14,1.8);warmB.position.set(6,11,9);scene.add(warmB);
+const blue=new THREE.PointLight('#91d9ff',4.2,9,2);blue.position.set(0,11,5);scene.add(blue);
 // volumetric steam plumes from pressure relief valves, as soft 3d translucent low-poly puffs
 const smoke=[];
 for(let i=0;i<70;i++){
@@ -260,8 +260,8 @@ for(let i=0;i<55;i++){
 }
 // Original Lemo post-processing, enabling GTAO and physically based DOF instead of disabling both.
 const fx=makePost(renderer,scene,camera,W,H,{ssaa:1,ao:true,aoRadius:.34,aoScale:2.1,aoAmt:.52});
-fx.dof.maxCoc=6;fx.dof.aper=85;fx.bloom.strength=.31;fx.bloom.radius=.65;fx.bloom.threshold=.85;
-fx.vig.uniforms.amt.value=.28;fx.vig.uniforms.warm.value=.3;fx.vig.uniforms.contrast.value=.13;fx.vig.uniforms.sat.value=1.0;
+fx.dof.maxCoc=6;fx.dof.aper=85;fx.bloom.strength=.19;fx.bloom.radius=.65;fx.bloom.threshold=1.2;
+fx.vig.uniforms.amt.value=.37;fx.vig.uniforms.warm.value=.3;fx.vig.uniforms.contrast.value=.20;fx.vig.uniforms.sat.value=1.0;
 window.DUR=8;
 window.EV=[{t:1.1,type:'mechanism_start'},{t:3,type:'pressure_release'},{t:5.9,type:'brass_chime'}];
 window.render=(t)=>{
@@ -274,8 +274,8 @@ window.render=(t)=>{
  rotors.forEach((g,i)=>g.rotation.z=(i%2?-.7:.53)*t+(i*.4));
  pistons.forEach((p,i)=>p.o.position.y=3+.49*Math.sin(t*3.8+p.phase));
  boilerGroups.forEach((b,i)=>{b.userData.hand.rotation.z=Math.sin(t*.68+i)*.9-.15;b.userData.valve.rotation.z=t*(i===0?-.35:.33)});
- warmA.intensity=17+2*Math.sin(t*3.4);warmB.intensity=11+1.3*Math.sin(t*2.8);
- key.intensity=3.7+.12*Math.sin(t*.8);
+ warmA.intensity=13+1.2*Math.sin(t*3.4);warmB.intensity=8+1.0*Math.sin(t*2.8);
+ key.intensity=2.2+.10*Math.sin(t*.8);
  for(const s of smoke){
   const v=(s.off+t*.19)%1;
   const x=s.side*5.4+Math.sin(v*9+s.drift*6)*.5;
