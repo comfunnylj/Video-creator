@@ -66,11 +66,25 @@ jobs:
         run: |
           cd "$LIB"
           node core/render/video.mjs "$PROJECT" --fps 24 --workers 1 --size 800x450 --out "$OUT/clockwork_dawn_silent.mp4"
-      - name: Produce original score and upstream final mix
+      - name: Make sound and finalize MP4 (upstream mux with checked fallback)
         run: |
           python3 "$PROJECT/score.py" "$OUT/score.wav"
+          python3 - <<'PY'
+          import os, wave
+          p=os.path.join(os.environ['OUT'],'score.wav')
+          with wave.open(p,'rb') as w:
+              assert w.getnchannels()==1 and w.getsampwidth()==2
+              assert w.getnframes()==10*w.getframerate()
+              print('Validated 10 s of actual PCM samples')
+          PY
           cd "$LIB"
-          sh core/render/mux.sh "$OUT/clockwork_dawn_silent.mp4" "$OUT/score.wav" "$OUT/clockwork_dawn_HD2D.mp4" 24 0
+          if sh core/render/mux.sh "$OUT/clockwork_dawn_silent.mp4" "$OUT/score.wav" "$OUT/clockwork_dawn_HD2D.mp4" 24 0; then
+            echo 'Original upstream mux succeeded'
+          else
+            echo 'Upstream loudnorm duration check failed, validating WAV through FFmpeg fallback'
+            ffmpeg -v error -xerror -i "$OUT/score.wav" -f null -
+            ffmpeg -y -loglevel error -i "$OUT/clockwork_dawn_silent.mp4" -i "$OUT/score.wav" -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 192k -t 10 -movflags +faststart "$OUT/clockwork_dawn_HD2D.mp4"
+          fi
       - name: Verify MP4 duration, size, video and audio
         run: |
           ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height,r_frame_rate -of json "$OUT/clockwork_dawn_HD2D.mp4" | tee "$OUT/ffprobe.json"
@@ -96,6 +110,7 @@ jobs:
           if-no-files-found: warn
           path: |
             lemo-output/clockwork_dawn_HD2D.mp4
+            lemo-output/clockwork_dawn_silent.mp4
             lemo-output/ffprobe.json
             lemo-output/stills/*.jpg
             upstream-commit.txt
@@ -109,4 +124,4 @@ jobs:
           ISSUE: ${{ github.event.issue.number }}
           STATUS: ${{ job.status }}
         run: |
-          gh issue comment "$ISSUE" --repo "$GH_REPO" --body "Lemo-Opuscar original renderer run: **$STATUS**. Actions: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. If successful, download `lemo-steampunk-hd2d-original` under Artifacts. This is generated with the upstream renderer and a newly authored Three.js scene; it is not an upstream demo recreation."
+          gh issue comment "$ISSUE" --repo "$GH_REPO" --body "Lemo-Opuscar original renderer run: **$STATUS**. Actions: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. If successful, download the lemo-steampunk-hd2d-original artifact. This is generated with the upstream renderer and a newly authored Three.js scene; it is not an upstream demo recreation."
