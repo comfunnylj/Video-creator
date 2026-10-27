@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLOCKWORK METROPOLIS — Lemo-Opuscar Original 3D City Film</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10141d}canvas{display:block;width:100%;height:100%}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head>
+<body><script type="module">
+import * as THREE from 'three';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {makePost} from '/core/three/post.js';
+const W=innerWidth,H=innerHeight, TAU=Math.PI*2;
+const scene=new THREE.Scene();scene.background=new THREE.Color('#152332');scene.fog=new THREE.FogExp2('#586470',.0092);
+const camera=new THREE.PerspectiveCamera(43,W/H,.1,310);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+renderer.setSize(W,H);renderer.setPixelRatio(1);renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const envRT=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),.05);
+scene.environment=envRT.texture;scene.environmentIntensity=.62;
+const P=(c,m=.0,r=.7,e=0x000000,ei=0)=>new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r,emissive:e,emissiveIntensity:ei});
+const stone=P('#595d60',.04,.93),limestone=P('#90847b',.06,.87),slate=P('#303e47',.28,.56);
+const iron=P('#29323b',.78,.39),ironDark=P('#17222c',.86,.48),bronze=P('#816044',.86,.34);
+const copper=P('#a76640',.87,.31),brass=P('#d7a65c',.83,.31),aged=P('#6b704e',.67,.56);
+const glass=P('#4c7381',.26,.26),warm=P('#ed9c53',.02,.65,'#ffae47',1.75),warmStrong=P('#ffd192',.04,.39,'#ffaf4c',2.1);
+const waterMat=new THREE.MeshPhysicalMaterial({color:'#293e49',metalness:.62,roughness:.25,clearcoat:1,clearcoatRoughness:.19});
+const V=(x,y,z)=>new THREE.Vector3(x,y,z), BG=new THREE.BoxGeometry(1,1,1),CY=new THREE.CylinderGeometry(1,1,1,12);
+function mesh(p,g,m,x,y,z,sx=1,sy=1,sz=1){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;o.receiveShadow=true;p.add(o);return o}
+function box(p,x,y,z,w,h,d,m){return mesh(p,BG,m,x,y,z,w,h,d)}
+function cyl(p,x,y,z,r,h,m){return mesh(p,CY,m,x,y,z,r,h,r)}
+function cone(p,x,y,z,r,h,m){return mesh(p,new THREE.ConeGeometry(r,h,12),m,x,y,z)}
+function torus(p,x,y,z,r,t,m){return mesh(p,new THREE.TorusGeometry(r,t,7,36),m,x,y,z)}
+function pole(p,a,b,r,m){const va=V(...a),vb=V(...b),d=vb.clone().sub(va);
+ const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),8),m);o.position.copy(va).add(vb).multiplyScalar(.5);
+ o.quaternion.setFromUnitVectors(V(0,1,0),d.normalize());o.castShadow=true;p.add(o);return o;}
+function seeded(i){const x=Math.sin(i*78.119+3.55)*43758.5453;return x-Math.floor(x)}
+function tex(seed){
+ const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');
+ g.fillStyle='#403c37';g.fillRect(0,0,512,512);
+ for(let y=0;y<512;y+=27)for(let x=0;x<512;x+=63){
+  const a=(Math.floor(y/27)%2)*31, v=Math.floor(seeded(x*4+y*21+seed)*28);
+  g.fillStyle='rgb('+(76+v)+','+(69+v)+','+(63+v)+')';g.fillRect((x+a)%512,y,61,25);}
+ for(let i=0;i<5800;i++){let x=seeded(i*11+seed)*512,y=seeded(i*13+seed)*512;
+ g.fillStyle=i%2?'rgba(0,0,0,.11)':'rgba(255,245,210,.07)';g.fillRect(x,y,1+seeded(i*39)*3,1+seeded(i*51)*3);}
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t;
+}
+const brick=new THREE.MeshStandardMaterial({map:tex(3),roughness:.92});
+const soot=new THREE.MeshStandardMaterial({map:tex(92),color:'#ada29a',roughness:.94});
+function softLight(x,y,z,color='#ffb36b',intensity=4,dist=19){
+ const l=new THREE.PointLight(color,intensity,dist,2);l.position.set(x,y,z);scene.add(l);return l;}
+// SKY (full 3D sky dome shader, no inserted still image)
+const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{t:{value:0}},
+ vertexShader:'varying vec3 vD;void main(){vD=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+ fragmentShader:`varying vec3 vD;uniform float t;
+ float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.54);}
+ void main(){
+ vec3 d=normalize(vD);float y=smoothstep(-.18,.56,d.y);
+ vec3 col=mix(vec3(.79,.48,.29),vec3(.095,.18,.30),y);
+ float cloud=sin(d.x*17.+sin(d.z*12.)*2.)*.55+sin(d.x*38.+d.z*17.)*.28+
+ sin(d.z*53.-d.x*21.)*.13;
+ float cs=smoothstep(.20,.74,cloud)*(1.-.35*y);
+ col=mix(col,vec3(.85,.57,.42),cs*.35);
+ vec3 sun=normalize(vec3(.52,.17,-1.));float v=dot(d,sun);
+ col+=vec3(.95,.53,.22)*pow(max(v,0.),55.)*.60;
+ col+=vec3(1.0,.78,.45)*pow(max(v,0.),2300.)*1.2;
+ gl_FragColor=vec4(col,1.);
+ }`});
+const sky=mesh(scene,new THREE.SphereGeometry(240,32,18),skyMat,0,15,0);
+sky.castShadow=false;sky.receiveShadow=false;
+scene.add(new THREE.HemisphereLight('#adc7dc','#4f3129',1.35));
+const sun=new THREE.DirectionalLight('#ffd2a2',3.05);sun.position.set(34,49,9);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-58;sun.shadow.camera.right=58;
+sun.shadow.camera.top=60;sun.shadow.camera.bottom=-60;sun.shadow.camera.near=.1;sun.shadow.camera.far=155;
+sun.shadow.bias=-.0002;scene.add(sun);
+const fill=new THREE.DirectionalLight('#8eacc8',1.0);fill.position.set(-21,21,26);scene.add(fill);
+// CITY TERRAIN, RIVER, PAVED EMBANKMENTS
+box(scene,0,-1.2,-45,200,2.3,226,stone);
+const canal=box(scene,0,-.11,-18,9,.08,165,waterMat);canal.castShadow=false;
+for(const side of [-1,1]){
+ box(scene,side*22,.02,-36,35,.2,160,stone);
+ box(scene,side*5.0,1.15,-29,.54,2.4,164,limestone);
+ box(scene,side*5.0,2.4,-29,.77,.20,164,brass);
+ for(let z=-66;z<=36;z+=3.2){
+  box(scene,side*5.05,2.8,z,.30,.70,.33,bronze);
+  if(z+3.2<=36)pole(scene,[side*5.05,3.0,z],[side*5.05,3.0,z+3.2],.07,brass);
+ }
+}
+// Plaza and boulevard along canal, foreground rail and masonry
+for(const side of [-1,1]){
+ for(let z=-69;z<50;z+=2.8){
+  box(scene,side*8.65,.08,z,6.3,.065,2.68,(Math.floor(z)%3===0)?soot:stone);}
+ for(let z=-61;z<41;z+=4.6){
+  const x=side*8.5;
+  cyl(scene,x,1.0,z,.18,1.9,iron);
+  cyl(scene,x,2.08,z,.26,.24,brass);
+  const b=mesh(scene,new THREE.SphereGeometry(.28,10,8),warmStrong,x,2.46,z);b.castShadow=false;
+  cone(scene,x,2.77,z,.47,.45,copper);
+  if(Math.abs(z)%4<.5)softLight(x,2.6,z,'#ffbe79',1.6,7);
+ }
+}
+// FACADE INSTANCING FOR HIGH DETAIL AT A FRACTION OF DRAW CALLS
+const instData={panes:[],darkpanes:[],frame:[],sill:[],rivet:[]};
+const M4=new THREE.Matrix4(), Q=new THREE.Quaternion(), S=new THREE.Vector3(), E=new THREE.Euler();
+function inst(bucket,x,y,z,w,h,d,rot=0){
+ const m=new THREE.Matrix4();Q.setFromEuler(E.set(0,rot,0));m.compose(V(x,y,z),Q,new THREE.Vector3(w,h,d));instData[bucket].push(m);
+}
+const buildings=[];
+function makeBuilding(x,z,w,h,d,seed,clamped=false){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const fm=seed%5===0?soot:brick;
+ box(g,0,h/2,0,w,h,d,fm);box(g,0,.9,0,w+.35,1.85,d+.45,stone);
+ for(const y of [h*.32,h*.64,h-.44]){
+  box(g,0,y,0,w+.50,.25,d+.50,aged);
+  box(g,0,y+.23,0,w+.33,.10,d+.28,brass);
+ }
+ for(const side of [-1,1]){
+  box(g,side*(w/2-.16),h/2,d/2+.11,.31,h,.24,limestone);
+  box(g,side*(w/2-.16),h/2,-d/2-.11,.31,h,.24,limestone);
+ }
+ const useDome=(seed%7===0), tower=(seed%6===0);
+ const roofY=h+.56;
+ if(useDome){
+  const dome=mesh(g,new THREE.SphereGeometry(1,16,8,0,TAU,0,Math.PI/2),aged,0,roofY,0,w*.40,2.85,d*.41);
+  dome.castShadow=true;cone(g,0,roofY+3.15,0,.56,1.6,brass);
+ }else if(tower){
+  box(g,0,roofY+1.8,0,w*.43,3.8,d*.45,soot);
+  cone(g,0,roofY+5,0,Math.min(w,d)*.37,3.7,copper);
+  torus(g,0,roofY+7.3,0,.2,.06,brass);
+ }else{
+  box(g,0,roofY,0,w+.65,.56,d+.65,slate);
+  for(let i=0;i<5;i++){
+   const px=-w/2+(i+.5)*w/5;
+   box(g,px,roofY+.5,d/2+.1,w/6,.78,.20,limestone);
+   box(g,px,roofY+.5,-d/2-.1,w/6,.78,.20,limestone);
+  }
+ }
+ // dormers and roof skylights
+ for(let k=0;k<2;k++){
+  const px=(k?1:-1)*w*.29;
+  cyl(g,px,h+1.45,-d*.13,.34,1.65,iron);
+  cyl(g,px,h+2.34,-d*.13,.43,.24,copper);
+ }
+ // real inset geometry, metal window casements and warm-lit glazing facing canal
+ const visibleSide=x<0?1:-1;
+ const faceZ=visibleSide*d/2;
+ const bays=Math.max(2,Math.floor(w/1.50)), levels=Math.max(2,Math.floor((h-2.4)/2.4));
+ for(let level=0;level<levels;level++)for(let bay=0;bay<bays;bay++){
+  const xx=-w/2+(bay+.5)*w/bays, yy=2.3+level*2.35, zz=z+faceZ*visibleSide,xw=x+xx;
+  const front=z+(visibleSide>0?d/2+.045:-d/2-.045);
+  const pp=xw, pz=front; // world z
+  const lit=(seed+level*11+bay*7)%5!==0;
+  inst('frame',pp,yy,pz,.99,1.63,.19);
+  inst(lit?'panes':'darkpanes',pp,yy,pz+(visibleSide>0?.105:-.105),.72,1.34,.15);
+  inst('sill',pp,yy-.90,pz,.99,.16,.35);
+  // brass vertical mullion
+  inst('frame',pp,yy,pz+(visibleSide>0?.18:-.18),.055,1.35,.09);
+ }
+ // rear side windows, and side-face balconies
+ for(let level=0;level<levels;level++)for(let bay=0;bay<Math.max(2,bays-2);bay++){
+  const xx=x-w/2+(bay+.6)*w/Math.max(2,bays-2);
+  let pz=z+(visibleSide>0?-d/2-.04:d/2+.04), yy=2.3+level*2.35;
+  inst('frame',xx,yy,pz,.86,1.54,.13);
+  inst((seed+level+bay)%4===0?'darkpanes':'panes',xx,yy,pz+(visibleSide>0?-.11:.11),.64,1.29,.12);
+ }
+ buildings.push(g);
+}
+// Framed building banks: near foreground broad details, middle distance varied heights, far skyline
+let bId=0;
+for(const side of [-1,1]){
+ for(let i=0;i<11;i++){
+  const z=30-i*10.0, x=side*(14.5+seeded(i*17+side*22+30)*4.5);
+  const w=7.5+seeded(i*7+side*19+10)*3.2, h=12+seeded(i*18+side*15+41)*17.5;
+  if(z < -38 && z > -67 && (Math.abs(x)<20))continue;
+  makeBuilding(x,z,w,h,9+seeded(i+123)*2.7,(++bId)*5);
+ }
+ for(let i=0;i<10;i++){
+  const z=-71-i*11.5,x=side*(16+seeded(i*13+side*9+112)*7.5);
+  const h=15+seeded(i*7+54)*26;
+  makeBuilding(x,z,8+seeded(i*3+45)*4,h,8+seeded(i+37)*3,(++bId)*3);
+ }
+}
+function buildInstances(data,material,geo=BG){
+ const m=new THREE.InstancedMesh(geo,material,Math.max(data.length,1));
+ for(let i=0;i<data.length;i++)m.setMatrixAt(i,data[i]);
+ m.instanceMatrix.needsUpdate=true;m.castShadow=false;m.receiveShadow=false;scene.add(m);
+}
+buildInstances(instData.panes,warm);
+buildInstances(instData.darkpanes,glass);
+buildInstances(instData.frame,bronze);
+buildInstances(instData.sill,limestone);
+// strong hero clocktower occupies open space in city, not obscured by nearby rooftops
+const clockG=new THREE.Group();clockG.position.set(1.0,0,-66);scene.add(clockG);
+box(clockG,0,7,0,11.5,14,11.5,brick);
+box(clockG,0,14.35,0,12.8,1.1,12.8,limestone);
+box(clockG,0,17.7,0,9.45,6.7,9.45,soot);
+box(clockG,0,21.3,0,10.4,.65,10.4,bronze);
+box(clockG,0,26.1,0,9.5,9.4,9.6,brick);
+box(clockG,0,30.5,0,10.2,.8,10.2,brass);
+box(clockG,0,34.3,0,7.0,6.9,7.0,iron);
+box(clockG,0,38,0,8.0,.8,8.0,aged);
+cone(clockG,0,43.2,0,5.5,9.5,aged);
+cyl(clockG,0,48.4,0,.18,2.1,brass);
+for(let side of [-1,1]) for(let front of [-1,1]){
+ const px=side*5,pz=front*5;
+ cyl(clockG,px,18.6,pz,.65,8.0,limestone);
+ cyl(clockG,px,23.5,pz,.96,.7,brass);
+ cone(clockG,px,27.6,pz,1.45,7.2,copper);
+ for(let y of [7,12,17,22])cyl(clockG,px,y,pz,.76,.28,bronze);
+}
+// central clock faces on all 4 sides
+const faceTexture=(()=>{const c=document.createElement('canvas');c.width=c.height=1024;const g=c.getContext('2d');g.clearRect(0,0,1024,1024);
+ g.translate(512,512);const roman=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+ for(let i=0;i<12;i++){let a=i*TAU/12;g.fillStyle='#372c22';g.textAlign='center';g.textBaseline='middle';g.font='bold 58px Georgia';g.fillText(roman[i],Math.sin(a)*382,-Math.cos(a)*382);}
+ for(let i=0;i<60;i++){const a=i*TAU/60;
+  const r=i%5===0?433:443;g.lineWidth=i%5===0?7:3;g.strokeStyle='#342d24';
+  g.beginPath();g.moveTo(Math.sin(a)*r,-Math.cos(a)*r);g.lineTo(Math.sin(a)*475,-Math.cos(a)*475);g.stroke();}
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;})();
+const clockHands=[];
+for(let side=0;side<4;side++){
+ const zRot=side*Math.PI/2;
+ const dial=new THREE.Group();
+ if(side===0)dial.position.set(0,26.4,5.05);
+ if(side===1)dial.position.set(5.05,26.4,0);
+ if(side===2)dial.position.set(0,26.4,-5.05);
+ if(side===3)dial.position.set(-5.05,26.4,0);
+ dial.rotation.y=zRot;clockG.add(dial);
+ const core=cyl(dial,0,0,0,4.3,.21,brass);core.rotation.x=Math.PI/2;
+ const plate=cyl(dial,0,0,.19,3.91,.23,limestone);plate.rotation.x=Math.PI/2;
+ torus(dial,0,0,.30,4.26,.22,bronze);torus(dial,0,0,.32,3.97,.06,brass);
+ const art=mesh(dial,new THREE.PlaneGeometry(7.65,7.65),new THREE.MeshBasicMaterial({map:faceTexture,transparent:true,depthWrite:false}),0,0,.36);
+ art.castShadow=false;
+ const h=new THREE.Group();h.position.z=.40;dial.add(h);
+ box(h,0,.97,0,.17,2.1,.1,ironDark);
+ const m=new THREE.Group();m.position.z=.52;dial.add(m);
+ box(m,0,1.32,0,.1,2.75,.09,ironDark);
+ cyl(dial,0,0,.65,.27,.2,brass).rotation.x=Math.PI/2;
+ clockHands.push({h,m});
+}
+// exposed gears, decorative pressure plumbing, 3d metal bolting under the clock
+const gears=[];
+function gear(p,x,y,z,r,teeth){
+ const g=new THREE.Group();g.position.set(x,y,z);p.add(g);
+ torus(g,0,0,0,r*.9,.13,brass);torus(g,0,0,.07,r*.28,.14,bronze);
+ for(let i=0;i<teeth;i++){
+  let a=i*TAU/teeth;
+  const b=box(g,Math.sin(a)*r*.89,Math.cos(a)*r*.89,.02,.25,r*.28,.25,bronze);
+  b.rotation.z=-a;
+ }
+ for(let i=0;i<8;i++){
+  let a=i*TAU/8;const sp=box(g,Math.sin(a)*r*.45,Math.cos(a)*r*.45,.1,.11,r*.84,.13,brass);sp.rotation.z=-a;
+ }
+ gears.push(g);
+}
+gear(clockG,-2.7,16.0,6.4,2.15,30);
+gear(clockG,1.9,15.4,6.4,1.44,22);
+gear(clockG,0,13.3,6.5,.85,14);
+for(let sx of [-1,1]){
+ for(let y=3;y<17;y+=3.2){
+  const pz=5.85,xx=sx*4.4;
+  pole(clockG,[xx,y,pz],[xx,y+2.9,pz],.18,copper);
+  cyl(clockG,xx,y,pz,.35,.3,brass);
+ }
+}
+for(let x=-4.5;x<4.7;x+=.85){
+ const bol=cyl(clockG,x,20.4,5.28,.11,.16,brass);bol.rotation.x=Math.PI/2;
+}
+// decorate clock base with five rows of illuminated gothic windows
+for(let y of [3.4,6.1,8.8,11.5]){
+ for(let x=-4.5;x<=4.5;x+=1.5){
+  box(clockG,x,y,5.81,.8,1.45,.16,bronze);
+  box(clockG,x,y,5.94,.6,1.26,.09,(x+y)%3===0?glass:warm);
+  cone(clockG,x,y+.85,5.96,.45,.62,limestone);
+ }
+}
+// angled spires and repeated monumental far skyline
+for(let side of [-1,1]){
+ for(let i=0;i<14;i++){
+  let z=-130-i*9.4,x=side*(7+seeded(i*9+side*17+18)*39),
+      r=2.5+seeded(i*4+27)*3.5,h=11+seeded(i*7+side*19+52)*35;
+  cyl(scene,x,h*.5,z,r,h,i%3?slate:stone);
+  cyl(scene,x,h,z,r*1.15,.5,brass);
+  cone(scene,x,h+3.5,z,r*.94,6.4,aged);
+ }
+}
+// elevated rail bridges across the canal and long viaducts: world geometry not a backdrop
+const trainCars=[];
+for(const zz of [-25,-83]){
+ box(scene,0,7.3,zz,33,.68,3.9,iron);
+ box(scene,0,7.9,zz,34,.21,4.3,brass);
+ for(let x=-14;x<=14;x+=1.5){
+  for(let s of [-1,1]){
+   const z=zz+s*1.95;
+   pole(scene,[x,8.15,z],[x,9.75,z],.085,brass);
+  }
+ }
+ for(let x of [-12,-8,8,12]){
+  box(scene,x,3.5,zz,1.15,7.0,3.1,stone);
+  cyl(scene,x,7.45,zz,.55,.24,copper);
+ }
+ // tall railway support suspension cables
+ for(const side of [-1,1]){
+  pole(scene,[side*14,10.2,zz],[0,14.2,zz],.11,iron);
+ }
+}
+// electric steam train passes above canal in distant bridge
+const train=new THREE.Group();train.position.set(-12,8.4,-83);scene.add(train);
+for(let j=0;j<5;j++){
+ let cx=j*2.95;
+ box(train,cx,0,0,2.6,1.7,2.15, j===0?aged:ironDark);
+ box(train,cx,1.0,0,2.8,.35,2.4,copper);
+ for(let s of [-1,1]){
+  const zp=s*1.15;
+  box(train,cx,.32,zp,1.9,.85,.1,warm);
+ }
+ for(let k of [-1,1])cyl(train,cx+k*.85,-1.1,0,.30,.25,bronze);
+}
+cyl(train,-.6,2.15,0,.42,1.3,iron);
+cyl(train,-.6,2.95,0,.60,.16,brass);
+// close foreground copper pipes, depth/parallax frames landscape
+for(let s of [-1,1]){
+ const tubeG=new THREE.Group();tubeG.position.set(s*15.3,0,18);scene.add(tubeG);
+ cyl(tubeG,0,3.1,0,1.4,6.2,copper);
+ for(let y=1;y<6;y+=1.4){cyl(tubeG,0,y,0,1.47,.26,brass);for(let k=0;k<8;k++){
+  let a=k*TAU/8;const nut=mesh(tubeG,new THREE.SphereGeometry(.11,6,4),brass,Math.cos(a)*1.47,y,Math.sin(a)*1.47);}
+ }
+ const pipe=pole(tubeG,[0,4.9,0],[-s*5,4.9,-10],.54,copper);
+ for(let j=0;j<7;j++) {
+  cyl(tubeG,0,5.9+j*.8,0,.18,.8,iron);
+ }
+}
+// Zeppelin models in proper 3D, animated and articulated
+const airships=[];
+function airship(x,y,z,s){
+ const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(s);scene.add(g);
+ const m=new THREE.MeshPhysicalMaterial({color:'#a58d6d',metalness:.45,roughness:.51,clearcoat:.22});
+ mesh(g,new THREE.SphereGeometry(1,36,20),m,0,0,0,6.5,1.55,1.73);
+ for(let xx=-5.4;xx<5.7;xx+=1.05){
+  const r=1.7*Math.sqrt(Math.max(.015,1-(xx/6.5)**2));
+  const t=torus(g,xx,0,0,r,.045,brass);t.rotation.y=Math.PI/2;
+ }
+ box(g,-.35,-2.3,0,4.6,.88,1.05,iron);
+ box(g,-.35,-2.88,0,4.7,.25,1.25,brass);
+ for(let i=0;i<5;i++){
+  box(g,-2.3+i*.95,-2.3,.55,.52,.38,.07,warm);
+  box(g,-2.3+i*.95,-2.3,-.55,.52,.38,.07,warm);
+ }
+ for(let a of [-1,1])pole(g,[a*2,-1.55,a*.35],[a*2,-2.5,a*.35],.05,brass);
+ box(g,-5.7,0,0,1.9,3.2,.12,copper);
+ box(g,-5.7,0,0,1.9,.14,2.5,copper);
+ const fan=new THREE.Group();fan.position.set(-6.7,0,0);g.add(fan);
+ for(let i=0;i<5;i++){
+  const blade=box(fan,0,1.1,0,.24,1.9,.15,brass);blade.rotation.x=i*TAU/5;
+ }
+ airships.push({g,fan,x,y,z,s});
+}
+airship(-13,42,-63,1.15);airship(29,39,-110,.55);airship(-41,45,-154,.42);
+// smoke puffs float from chimneys as translucent physical 3D particles
+const smoke=[];
+for(let i=0;i<110;i++){
+ const v=seeded(i*4+19);let side=i%2?1:-1;
+ const x=side*(13+seeded(i*8+41)*24),z=-110+seeded(i*18+19)*157;
+ const mat=new THREE.MeshBasicMaterial({color:'#d0c5b2',transparent:true,opacity:.11,depthWrite:false});
+ const ob=mesh(scene,new THREE.SphereGeometry(1,8,6),mat,x,15,z);
+ ob.castShadow=false;smoke.push({ob,x,z,speed:.32+seeded(i*5)*.5,phase:v});
+}
+// soft gold dust in foreground — only 35 particles so it doesn't look like snow
+const motes=[];
+for(let i=0;i<35;i++){
+ const x=-20+seeded(i*43+12)*40,y=4+seeded(i*41+17)*18,z=-30+seeded(i*11+42)*55;
+ const o=mesh(scene,new THREE.SphereGeometry(.038,5,4),warmStrong,x,y,z);
+ o.castShadow=false;motes.push({o,x,y,z,i});
+}
+// post: upstream Lemo toolkit, GTAO + restrained bloom + cinematic grade, keep distant city sharp
+const fx=makePost(renderer,scene,camera,W,H,{ssaa:1,ao:true,aoRadius:.47,aoScale:1.85,aoAmt:.38});
+fx.dof.maxCoc=0;fx.bloom.strength=.22;fx.bloom.threshold=1.15;fx.bloom.radius=.48;
+fx.vig.uniforms.amt.value=.26;fx.vig.uniforms.warm.value=.38;fx.vig.uniforms.contrast.value=.16;fx.vig.uniforms.sat.value=1.02;
+window.DUR=8;
+window.EV=[{t:1.2,type:'airship'},{t:3.8,type:'steam'},{t:5.7,type:'distant_train'}];
+window.render=(t)=>{
+ const u=t/8, ease=u*u*(3-2*u);
+ // low aerial tracking above canal aimed at clocktower with full skyline behind it
+ camera.position.set(-7.8+4.3*ease,17.8+1.3*ease,43-8.0*ease);
+ camera.lookAt(.8+1.0*ease,18.5,-67);
+ clockHands.forEach(h=>{h.h.rotation.z=-t*.016;h.m.rotation.z=-t*.23});
+ gears.forEach((g,i)=>g.rotation.z=t*(i%2?-.43:.54)+i*.4);
+ train.position.x=-14+t*1.7;
+ airships.forEach((a,i)=>{
+  a.g.position.set(a.x+t*(i===0?.85:i===1?-.35:.19),a.y+Math.sin(t*.53+i)*.22,a.z);
+  a.fan.rotation.x=t*11; a.g.rotation.z=Math.sin(t*.38+i)*.015;
+ });
+ smoke.forEach((s,i)=>{const ph=(t*s.speed+s.phase)%1;
+  s.ob.position.set(s.x+ph*1.9,11+ph*15.0,s.z);
+  const size=.18+ph*2.8;s.ob.scale.setScalar(size);s.ob.material.opacity=.09*(1-ph);
+ });
+ motes.forEach(m=>{m.o.position.y=m.y+Math.sin(t*.65+m.i*2)*.45});
+ fx.vig.uniforms.fade.value=Math.min(1,t/.45,(8-t)/.50);
+ fx.composer.render();
+};
+window.READY=true;window.render(0);
+</script></body></html>
