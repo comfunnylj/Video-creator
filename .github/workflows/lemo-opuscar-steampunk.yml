@@ -24,7 +24,7 @@ jobs:
     env:
       PROJECT: ${{ github.workspace }}/lemo-opuscar-projects/steampunk-hd2d
       OUT: ${{ github.workspace }}/lemo-output
-      LIB: ${{ runner.temp }}/lemo-upstream
+      LIB: ${{ github.workspace }}/lemo-upstream
       LEMO_ANGLE: swiftshader
     steps:
       - name: Check out Video-creator (does not touch Oracle)
