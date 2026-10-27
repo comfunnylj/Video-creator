@@ -24,9 +24,9 @@ scene.environment=env.texture;scene.environmentIntensity=.60;
 const P=(color,metalness=.6,roughness=.38,extra={})=>new THREE.MeshPhysicalMaterial({color,metalness,roughness,clearcoat:.4,clearcoatRoughness:.23,...extra});
 const brass=P('#b38a48',.91,.21),gold=P('#dbc082',.95,.17),aged=P('#6c5133',.88,.45);
 const darkbronze=P('#4b3528',.92,.31),copper=P('#a7653c',.9,.29),patina=P('#54716a',.82,.52),chrome=P('#959a9b',.93,.16);
-const steel=P('#272e35',.9,.37),gunmetal=P('#141a1c',.95,.28),porcelain=P('#e0d2aa',.06,.30);
+const steel=P('#272e35',.9,.37),gunmetal=P('#141a1c',.95,.28),porcelain=P('#847a65',.05,.91);
 const ember=P('#ffce83',.23,.19,{emissive:'#ff8425',emissiveIntensity:2.6}),coldLight=P('#b2e7fa',.1,.17,{emissive:'#7cc7f0',emissiveIntensity:2.2});
-const stone=P('#252b31',.07,.94),groundMat=P('#26282d',.36,.22);
+const stone=P('#252b31',.07,.94),groundMat=P('#161c23',.37,.40);
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 const cylinder=(rt,rb,h,n=48)=>new THREE.CylinderGeometry(rt,rb,h,n);
 function add(parent,geo,material,pos,rot){const m=new THREE.Mesh(geo,material);m.position.set(...pos);if(rot)m.rotation.set(...rot);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
@@ -54,8 +54,8 @@ function scratchTexture(seed,mode){
  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;return t;
 }
 const brushed=scratchTexture(4,'brass'),metalScratches=scratchTexture(7,'steel');
-brass.map=brushed;brass.color.set('#f5dcc0');brass.needsUpdate=true;
-chrome.map=metalScratches;chrome.color.set('#f3f5f9');chrome.needsUpdate=true;
+brass.map=brushed;brass.color.set('#bb9d76');brass.needsUpdate=true;
+chrome.map=metalScratches;chrome.color.set('#bfc5c8');chrome.needsUpdate=true;
 
 // textured brick-and-cast-iron workshop
 function bricks(){
