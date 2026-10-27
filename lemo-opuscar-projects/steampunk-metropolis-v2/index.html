@@ -32,7 +32,7 @@ const texFile=async prefix=>{
 };
 function pbrtexture(t,color=false,u=1,v=1){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(u,v);t.anisotropy=8;
  if(color)t.colorSpace=THREE.SRGBColorSpace;return t}
-const tex={
+const pbrMaps={
  brickD:pbrtexture(await texFile('brick_diff'),true,2,3),
  brickN:pbrtexture(await texFile('brick_nor'),false,2,3),
  brickR:pbrtexture(await texFile('brick_rough'),false,2,3),
@@ -66,9 +66,9 @@ function tex(seed){
  g.fillStyle=i%2?'rgba(0,0,0,.11)':'rgba(255,245,210,.07)';g.fillRect(x,y,1+seeded(i*39)*3,1+seeded(i*51)*3);}
  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t;
 }
-const brick=new THREE.MeshStandardMaterial({map:tex.brickD,normalMap:tex.brickN,normalScale:new THREE.Vector2(.6,.6),roughnessMap:tex.brickR,roughness:.97});
-const soot=new THREE.MeshStandardMaterial({map:tex.brickD,normalMap:tex.brickN,normalScale:new THREE.Vector2(.8,.8),roughnessMap:tex.brickR,color:'#727677',roughness:.95});
-const cobble=new THREE.MeshStandardMaterial({map:tex.cobbleD,normalMap:tex.cobbleN,normalScale:new THREE.Vector2(.68,.68),roughnessMap:tex.cobbleR,roughness:.66,metalness:.045});
+const brick=new THREE.MeshStandardMaterial({map:pbrMaps.brickD,normalMap:pbrMaps.brickN,normalScale:new THREE.Vector2(.6,.6),roughnessMap:pbrMaps.brickR,roughness:.97});
+const soot=new THREE.MeshStandardMaterial({map:pbrMaps.brickD,normalMap:pbrMaps.brickN,normalScale:new THREE.Vector2(.8,.8),roughnessMap:pbrMaps.brickR,color:'#727677',roughness:.95});
+const cobble=new THREE.MeshStandardMaterial({map:pbrMaps.cobbleD,normalMap:pbrMaps.cobbleN,normalScale:new THREE.Vector2(.68,.68),roughnessMap:pbrMaps.cobbleR,roughness:.66,metalness:.045});
 function softLight(x,y,z,color='#ffb36b',intensity=4,dist=19){
  const l=new THREE.PointLight(color,intensity,dist,2);l.position.set(x,y,z);scene.add(l);return l;}
 // SKY (full 3D sky dome shader, no inserted still image)
