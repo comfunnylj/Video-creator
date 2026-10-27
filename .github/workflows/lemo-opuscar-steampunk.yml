@@ -9,7 +9,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: lemo-opuscar-render
+  group: lemo-opuscar-render-noapt
   cancel-in-progress: false
 
 jobs:
@@ -37,10 +37,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install system dependencies
+      - name: Verify runner system dependencies without APT
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg libgl1 libgbm1 libnss3 libasound2t64 fonts-dejavu-core
+          command -v ffmpeg
+          command -v ffprobe
+          command -v git
+          node --version
+          python3 --version
+          echo 'No APT network install: use GitHub Ubuntu preinstalled FFmpeg and browser libraries'
       - name: Fetch original Lemo-Opuscar library using sparse checkout
         run: |
           git clone --depth 1 --filter=blob:none --sparse --branch main https://github.com/lemomo-ai/lemo-opuscar.git "$LIB"
