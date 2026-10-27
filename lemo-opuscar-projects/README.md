@@ -1,5 +1,16 @@
 # Lemo-Opuscar: isolated upstream renderer proof
 
+## End-to-end verified result (2026-10-27)
+
+- **SUCCESS**: https://github.com/comfunnylj/Video-creator/actions/runs/40472136765
+- Artifact: `lemo-steampunk-hd2d-original`, artifact ID `12718702154`, about 3.12 MB ZIP, retained for 14 days.
+- Verified output: `lemo-output/clockwork_dawn_HD2D.mp4`: 10 seconds, 800×450, H.264 video, AAC audio.
+- Original official `core/render/still.mjs` and `core/render/video.mjs` executed successfully: 240 video frames.
+- Original `core/render/mux.sh` misreported the complete, independently validated 10 s WAV as 7.1 s. The documented fallback decoded WAV with FFmpeg and merged the video/audio successfully. Final `ffprobe` assertions passed.
+- Uses a completely new Three.js/pixel-sprite scene, not the library demo or a static-image pan/zoom.
+- Existing Oracle server and social posting workloads were untouched.
+- A previous test run failed due to audio validation (and an APT networking test ran slowly); use the currently successful workflow for future runs.
+
 This is an independent proof of concept, not the existing Video Creation (Artlist/Seedance) or Travel TOP5 Shorts system.
 
 ## Run location and safety
