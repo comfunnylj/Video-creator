@@ -1,0 +1,258 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IRON AURORA — Steampunk Cinematic</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101824}canvas{display:block;width:100%;height:100%}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body><script type="module">
+import * as THREE from 'three';
+import {makePost} from '/core/three/post.js';
+const W=innerWidth,H=innerHeight;
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x6e7b88,.012);
+const camera=new THREE.PerspectiveCamera(47,W/H,.1,260);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+renderer.setSize(W,H);renderer.setPixelRatio(1);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x182637);
+document.body.appendChild(renderer.domElement);
+const mat=(c,metal=.0,rough=.7,emissive=0x000000,ei=0)=>new THREE.MeshStandardMaterial({color:c,metalness:metal,roughness:rough,emissive,emissiveIntensity:ei});
+const bronze=mat(0x9e6634,.72,.34),brass=mat(0xcca05d,.82,.27),darkbrass=mat(0x735032,.70,.46);
+const patina=mat(0x50716c,.65,.67),copper=mat(0xa16445,.79,.35),iron=mat(0x333942,.76,.40),blackmetal=mat(0x1c262e,.75,.3);
+const masonry=mat(0x77716c,.08,.94),stone=mat(0x9d8e7e,.03,.91),slate=mat(0x424b51,.12,.68),glass=mat(0x40525e,.20,.25,0x394855,.18);
+const windowlit=mat(0xffbc65,.10,.22,0xff9a35,2.1),hot=mat(0xffdca3,.18,.26,0xffa142,3.0);
+const groundmat=mat(0x44464a,.22,.28),watmat=new THREE.MeshPhysicalMaterial({color:0x4c6a72,metalness:.5,roughness:.18,clearcoat:1,clearcoatRoughness:.09});
+const sphere=(r,cols=16,rows=12)=>new THREE.SphereGeometry(r,cols,rows);
+const boxg=new THREE.BoxGeometry(1,1,1);
+const cylinderg=new THREE.CylinderGeometry(1,1,1,16);
+function attach(p,geo,m,x,y,z,sx=1,sy=1,sz=1){const a=new THREE.Mesh(geo,m);a.position.set(x,y,z);a.scale.set(sx,sy,sz);a.castShadow=true;a.receiveShadow=true;p.add(a);return a}
+function cube(p,x,y,z,w,h,d,m){return attach(p,boxg,m,x,y,z,w,h,d)}
+function cy(p,x,y,z,r,h,m,detail=16){return attach(p,detail===16?cylinderg:new THREE.CylinderGeometry(1,1,1,detail),m,x,y,z,r,h,r)}
+function cone(p,x,y,z,r,h,m){return attach(p,new THREE.ConeGeometry(r,h,12),m,x,y,z)}
+function tor(p,x,y,z,r,t,m,rz=0){const a=attach(p,new THREE.TorusGeometry(r,t,8,40),m,x,y,z);a.rotation.z=rz;return a}
+function beam(p,a,b,r,m){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b);const delta=B.clone().sub(A);
+const obj=attach(p,new THREE.CylinderGeometry(r,r,delta.length(),10),m,(A.x+B.x)/2,(A.y+B.y)/2,(A.z+B.z)/2);
+obj.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());return obj;}
+function point(x,y,z,c,power=7,range=16){const l=new THREE.PointLight(c,power,range,1.7);l.position.set(x,y,z);scene.add(l);return l;}
+function seeded(i){const v=Math.sin(i*127.1+2.17)*43758.5453;return v-Math.floor(v);}
+
+// procedural masonry and oxidised metal texture; canvas texture is directly mapped on UV.
+function texture(seed,kind){
+ const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
+ g.fillStyle=kind==='stone'?'#8c8173':'#80583b';g.fillRect(0,0,256,256);
+ for(let y=0;y<256;y+=20) for(let x=0;x<256;x+=42){
+  const ox=(Math.floor(y/20)%2)*20;
+  const n=seeded(seed+y*9+x*7),gr=Math.floor((n-.5)*32);
+  g.fillStyle=kind==='stone'?`rgb(${125+gr},${114+gr},${101+gr})`:`rgb(${115+gr},${81+gr},${52+gr})`;
+  g.fillRect((x+ox)%256,y,40,18);
+  g.strokeStyle='rgba(20,17,14,.35)';g.strokeRect((x+ox)%256,y,40,18);
+ }
+ for(let i=0;i<1400;i++){const x=seeded(seed+i*27)*256,y=seeded(seed+i*53)*256;
+  g.fillStyle=i%3?'rgba(11,13,11,.07)':'rgba(255,234,188,.09)';g.fillRect(x,y,1+seeded(i+7)*3,1+seeded(i+8)*3);}
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t;
+}
+const brick=new THREE.MeshStandardMaterial({map:texture(18,'stone'),roughness:.86});
+const rust=new THREE.MeshStandardMaterial({map:texture(45,'rust'),metalness:.54,roughness:.52});
+const skygeo=new THREE.SphereGeometry(200,32,20);
+const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{time:{value:0}},vertexShader:`varying vec3 v;void main(){v=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
+varying vec3 v; uniform float time;
+void main(){vec3 d=normalize(v); float h=smoothstep(-.22,.60,d.y);
+vec3 col=mix(vec3(.95,.50,.26),vec3(.08,.15,.26),h);
+float cloud=sin(d.x*29.+sin(d.z*17.)*2.+time*.02)*sin(d.z*22.-d.x*10.);
+cloud+=.45*sin(d.x*71.+d.z*29.);
+col=mix(col,vec3(.66,.48,.37),smoothstep(.42,1.06,cloud)*.22*(1.-h));
+vec3 sunDir=normalize(vec3(-.45,.10,-1.));
+float dist=length(d-sunDir);
+col+=vec3(1.,.71,.40)*.6*exp(-dist*dist*38.);
+col+=vec3(2.4,1.35,.65)*exp(-dist*dist*13500.);
+gl_FragColor=vec4(col,1.);}`});
+const sky=attach(scene,skygeo,skyMat,0,0,0);sky.castShadow=false;sky.receiveShadow=false;
+scene.add(new THREE.HemisphereLight(0x9ebadb,0x6b482e,2.75));
+const sun=new THREE.DirectionalLight(0xffca8e,3.2);sun.position.set(-25,44,-43);
+sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);
+sun.shadow.camera.left=-52;sun.shadow.camera.right=52;sun.shadow.camera.top=55;sun.shadow.camera.bottom=-55;
+sun.shadow.camera.near=.5;sun.shadow.camera.far=200;sun.shadow.bias=-.00016;scene.add(sun);
+const fill=new THREE.DirectionalLight(0x87b8d0,1.25);fill.position.set(20,20,27);scene.add(fill);
+
+// water canal and stone shore embankments
+cube(scene,0,-1.3,-15,150,2,155,masonry);
+cube(scene,0,-.17,-15,11,.17,150,watmat);
+for(let side of [-1,1]){
+  cube(scene,side*13,-.15,-8,14,.40,140,groundmat);
+  cube(scene,side*5.65,.45,-12,.65,1.35,137,stone);
+  for(let z=-61;z<55;z+=2.5){cube(scene,side*5.6,1.2,z,.33,.35,.33,brass);
+     beam(scene,[side*5.6,1.28,z],[side*5.6,1.28,z+2.5],.06,brass);}
+}
+// detailed paved street slabs
+for(let s of [-1,1])for(let i=0;i<26;i++){const z=-57+i*4.4;
+ cube(scene,s*(7.5+2.2*seeded(i+21)),.075,z,3.5,.09,3.6,i%3?groundmat:slate);}
+
+// bridge deck spanning canal behind main focus, riveted iron beam bridge
+cube(scene,0,3,-26,32,.75,5,iron);
+for(let zz of [-28,-24])for(let s of [-1,1]){
+ beam(scene,[s*15,3.4,zz],[0,4.35,zz],.15,brass);
+ for(let x=-14;x<15;x+=2.4){cube(scene,x,4.0,zz,.18,1.45,.22,brass);}}
+for(let zz of [-28,-24])for(let xx=-13;xx<14;xx+=2.7){cube(scene,xx,4.8,zz,.75,.16,.18,copper);}
+
+// detailed gothic buildings on each waterfront
+const buildings=[];
+function building(x,z,w,h,d,seed){
+ const b=new THREE.Group();b.position.set(x,0,z);scene.add(b);
+ cube(b,0,h/2,0,w,h,d,seed%3?brick:rust);
+ cube(b,0,h+.55,0,w+1.0,1.1,d+1.0,slate);
+ cube(b,0,.75,0,w+1.2,1.5,d+1.2,stone);
+ // horizontal cornices
+ for(let fy of [h*.33,h*.67,h-.7])cube(b,0,fy,0,w+.6,.23,d+.55,copper);
+ // facade pillars
+ for(let sx of [-1,1]){
+  cube(b,sx*(w/2-.22),h/2,d/2+.18,.25,h,.35,brass);
+  cube(b,sx*(w/2-.3),h/2,-d/2-.16,.3,h,.33,darkbrass);
+ }
+ // luminous tall narrow window bays facing canal
+ const bays=Math.max(2,Math.floor(w/1.65));
+ for(let a=0;a<bays;a++){const bx=-w/2+(a+.5)*(w/bays);
+ for(let level=1;level<Math.max(2,Math.floor(h/2.7));level++){
+  const wy=level*2.7+.3;
+  const pane=cube(b,bx,wy,(x<0?d/2+.036:-d/2-.036),.67,1.25,.07,(level+a+seed)%4===0?glass:windowlit);
+  pane.castShadow=false;cube(b,bx,wy+0.7,(x<0?d/2+.13:-d/2-.13),.88,.13,.17,brass);
+  cube(b,bx,wy-.67,(x<0?d/2+.12:-d/2-.12),.9,.13,.19,stone);
+  cube(b,bx,wy,(x<0?d/2+.14:-d/2-.14),.08,1.2,.10,iron);
+ }}
+ // roof antenna, stepped parapets and masonry chimneys
+ if(seed%2){const roof=cone(b,0,h+2.6,0,Math.min(w,d)*.46,4.1,patina);
+  cy(b,0,h+4.85,0,.13,1.0,brass);}
+ for(let k=0;k<2;k++){cy(b,(k?1:-1)*w*.33,h+2.2,-d*.18,.4,2.5,iron);
+  cy(b,(k?1:-1)*w*.33,h+3.5,-d*.18,.58,.25,copper);}
+ // exposed pipes on front facade
+ for(let k=0;k<2;k++){const pz=(x<0?d/2+.52:-d/2-.52);beam(b,[-w*.38+k*w*.7,1.5,pz],[-w*.38+k*w*.7,h*.82,pz],.17,copper);}
+ buildings.push(b);
+}
+for(let i=0;i<11;i++){
+ let z=-53+i*7.7;const leftH=9+seeded(i+4)*14,rightH=9+seeded(i+19)*16;
+ building(-13.2-seeded(i+8)*3.3,z,5.7+seeded(i+3)*2.1,leftH,6.8,i+12);
+ building(13.3+seeded(i+30)*3.7,z+2.4,5.3+seeded(i+5)*2.0,rightH,6.5,i+27);
+}
+// large grand cathedral-like clock tower on right bank
+const clockG=new THREE.Group();clockG.position.set(17,0,-33);scene.add(clockG);
+const baseW=10;
+cube(clockG,0,5.6,0,baseW,11.2,9.5,brick);
+for(let h of [1.6,5.5,10.8,19,27]){
+ cube(clockG,0,h,0,baseW+.7-(h>12?2:0),.52,10-(h>12?2:0),brass);
+}
+for(let k=0;k<4;k++){
+ const px=(k%2?1:-1)*4.2,pz=(k<2?1:-1)*4;
+ cy(clockG,px,7,pz,.76,14,stone,12);
+ cy(clockG,px,14.2,pz,.95,.8,brass);
+ cone(clockG,px,17.1,pz,1.28,5.1,patina);
+}
+cube(clockG,0,16.25,0,7.7,9.3,7.4,brick);
+cube(clockG,0,21.3,0,8.4,1.1,8.1,copper);
+for(let s of [-1,1]) for(let face of [-1,1]){let px=s*3.55,pz=face*3.48;
+ cy(clockG,px,17,pz,.58,8.3,brass);}
+cube(clockG,0,24.3,0,6.6,5.8,6.4,iron);
+const clockhands=[];
+for(let face of [1,-1]){
+ const clock=new THREE.Group();clock.position.set(0,17.6,face*3.84);if(face===-1)clock.rotation.y=Math.PI;clockG.add(clock);
+ attach(clock,new THREE.CylinderGeometry(3.04,3.04,.22,48),brass,0,0,0).rotation.x=Math.PI/2;
+ attach(clock,new THREE.CylinderGeometry(2.69,2.69,.27,48),stone,0,0,.18).rotation.x=Math.PI/2;
+ attach(clock,new THREE.CylinderGeometry(2.48,2.48,.29,48),windowlit,0,0,.26).rotation.x=Math.PI/2;
+ for(let i=0;i<12;i++){const a=i*Math.PI/6;const tick=cube(clock,Math.sin(a)*2.15,Math.cos(a)*2.15,.49,.13,i%3===0?.49:.25,.12,blackmetal);tick.rotation.z=-a;}
+ const hour=new THREE.Group();clock.add(hour);hour.position.z=.63;
+ cube(hour,0,.82,0,.25,1.7,.24,blackmetal);cube(hour,0,1.42,.06,.36,.25,.21,brass);
+ const minute=new THREE.Group();clock.add(minute);minute.position.z=.72;
+ cube(minute,0,1.0,0,.18,2.0,.21,blackmetal);cube(minute,0,1.80,.02,.3,.22,.20,brass);
+ clockhands.push({hour,minute});
+}
+cone(clockG,0,29.7,0,4.3,6.5,patina);cy(clockG,0,33.45,0,.19,1.5,brass);tor(clockG,0,34.2,0,.42,.10,brass);
+
+// foreground gears mounted on several buildings (animated rotating as real 3D)
+const gears=[];
+function gear(p,x,y,z,r,teeth=18){
+ const g=new THREE.Group();g.position.set(x,y,z);p.add(g);
+ tor(g,0,0,0,r,.12,brass);tor(g,0,0,.04,r*.5,.12,copper);
+ for(let i=0;i<teeth;i++){
+  const a=i*2*Math.PI/teeth;
+  const tooth=cube(g,Math.cos(a)*r,Math.sin(a)*r,.02,r*.26,.22,.35,darkbrass);tooth.rotation.z=a;
+ }
+ for(let i=0;i<7;i++){let a=i*2*Math.PI/7;const sp=cube(g,Math.cos(a)*r*.47,Math.sin(a)*r*.47,.12,r*.85,.105,.19,brass);sp.rotation.z=a;}
+ cy(g,0,0,.18,.23,.45,iron).rotation.x=Math.PI/2;
+ gears.push(g);
+}
+gear(scene,-7.2,8.7,7.9,2.4);
+gear(scene,-4.85,7.4,8.0,1.0);
+gear(scene,19.4,7.2,-24.4,1.7);
+// floating dirigible built from real geometry, rings, fins, gondola, propeller
+const air=new THREE.Group();air.position.set(-18,25,-46);scene.add(air);
+const skin=mat(0x978c73,.30,.62),rib=mat(0x755b3f,.73,.4);
+const hull=attach(air,sphere(1,48,24),skin,0,0,0,7.0,2.45,2.45);
+for(let i=-6;i<=6;i+=1.5){const rad=2.45*Math.sqrt(Math.max(.03,1-(i/7)**2));const ring=tor(air,i,0,0,rad,.075,brass);ring.rotation.y=Math.PI/2;}
+for(let i=0;i<8;i++){const a=i*2*Math.PI/8;beam(air,[-6.6,Math.cos(a)*.8,Math.sin(a)*.8],[6.6,Math.cos(a)*.8,Math.sin(a)*.8],.042,brass);}
+cube(air,-.2,-3.2,0,6.2,1.05,1.75,iron);cube(air,-.1,-2.7,0,6.4,.27,1.85,brass);
+for(let k=-4;k<=4;k++){cube(air,k*.57,-3.05,.9,.33,.5,.08,windowlit);}
+for(let sx of [-2.7,2.7]) for(let z of [-.8,.8])beam(air,[sx,-2.6,z],[sx, -1.1,z*2],.045,copper);
+const tail=cube(air,-6.1,0,0,1.7,3.9,.19,patina);
+const tail2=cube(air,-6.2,0,0,1.55,.19,3.8,copper);
+const prop=new THREE.Group();prop.position.set(-7.7,0,0);air.add(prop);
+for(let i=0;i<4;i++){const a=i*Math.PI/2;const blade=cube(prop,0,1.15,0,.35,2.1,.15,darkbrass);blade.rotation.x=a;}
+for(let i=0;i<3;i++){point(-18+i*2,22.2,-46,0xffad51,3.0,7);}
+const searchlamp=point(-5,8,12,0xffa756,4,12);
+// water boats at canal
+for(let i=0;i<3;i++){let z=12-i*19;const boat=new THREE.Group();boat.position.set((i-1)*1.9,0,z);scene.add(boat);
+const hull=cube(boat,0,.1,0,2.7,.65,6.5,iron);hull.rotation.y=.015;
+cube(boat,0,.75,-.5,2,1.4,2.2,copper);cube(boat,0,1.55,-.5,2.3,.23,2.5,brass);
+cy(boat,0,2.1,0,.32,2.3,iron);cy(boat,0,3.3,0,.47,.3,brass);
+point((i-1)*1.9,1.5,z-2,0xffbf6c,2.5,8);
+}
+// brass lamps along promenade
+const lamps=[];
+for(let side of [-1,1])for(let k=0;k<13;k++){
+ const z=24-k*7.0, x=side*7.35;cy(scene,x,1.6,z,.12,3.2,iron);
+ cy(scene,x,3.20,z,.19,.32,brass);
+ const globe=attach(scene,sphere(.3,10,8),hot,x,3.58,z);globe.castShadow=false;
+ cone(scene,x,3.92,z,.53,.48,copper);lamps.push(globe);
+ if(k%4===0)point(x,3.5,z,0xffac53,3,9);
+}
+// animated soft volumetric steam sprites, many in 3d
+const steam=[];
+const smokemat=new THREE.MeshBasicMaterial({color:0xb8c4c7,transparent:true,opacity:.15,depthWrite:false,side:THREE.DoubleSide});
+for(let i=0;i<65;i++){
+ const s=seeded(i*12+.1),x=(i%2?-1:1)*(8+seeded(i+7)*16),z=-54+seeded(i*4+5)*91;
+ const puff=attach(scene,sphere(1,8,6),smokemat.clone(),x,6,z,1,1,1);
+ puff.castShadow=false;puff.receiveShadow=false;
+ steam.push({mesh:puff,x,z,speed:.9+seeded(i+30)*2.3,start:seeded(i*25)*8,scale:.55+seeded(i+15)*1.5});
+}
+for(let i=0;i<75;i++){
+ const x=-9+seeded(i+68)*18,z=-50+seeded(i+76)*110;
+ const dust=attach(scene,sphere(.028,5,4),mat(0xf5c68d,0,1),x,1+seeded(i+9)*15,z);dust.castShadow=false;
+}
+// cinematic lighting/post processing from original Lemo-Opuscar core
+const fx=makePost(renderer,scene,camera,W,H,{ssaa:1,ao:false});
+fx.dof.maxCoc=0;fx.bloom.strength=.44;fx.bloom.radius=.55;fx.bloom.threshold=.74;fx.vig.uniforms.amt.value=.29;fx.vig.uniforms.warm.value=.65;
+fx.vig.uniforms.sat.value=.94;fx.vig.uniforms.contrast.value=.11;
+window.DUR=10;
+window.EV=[{t:0,type:'establishing'},{t:2.5,type:'airship'},{t:5.4,type:'clock_mechanism'},{t:8,type:'city_reveal'}];
+window.render=(t)=>{
+ const u=t/10;
+ const smooth=u*u*(3-2*u);
+ // dolly forward and crane to reveal clocktower and city, camera cannot cross walls
+ camera.position.set(-.5+u*2,12+u*2.7,30-u*7.3);
+ camera.lookAt(1.1+u*2.1,10.4+u*1.7,-35+u*1.4);
+ sun.intensity=3.05+.38*Math.sin(t*.12);
+ air.position.set(-17.5+u*12,25.5+.27*Math.sin(t*.5),-45+u*3);
+ air.rotation.z=.015*Math.sin(t*.5);
+ prop.rotation.x=t*10;
+ gears.forEach((g,i)=>g.rotation.z=t*(i%2?-.58:.42)+i*.2);
+ clockhands.forEach(h=>{h.hour.rotation.z=-t*.009;h.minute.rotation.z=-t*.12;});
+ watmat.roughness=.19+.035*Math.sin(t*1.1);
+ for(let i=0;i<steam.length;i++){
+  const s=steam[i];const a=(t*s.speed*.19+s.start)%1;
+  s.mesh.position.set(s.x+Math.sin(i+t*.4)*.55,3+13*a,s.z);
+  s.mesh.scale.setScalar(s.scale*(.7+a*2.5));
+  s.mesh.material.opacity=.12*(1-a);
+ }
+ lamps.forEach((l,i)=>{l.material.emissiveIntensity=2.6+.2*Math.sin(t*3+i*.9)});
+ skyMat.uniforms.time.value=t;
+ fx.vig.uniforms.fade.value=Math.min(1,t/.6,(10-t)/.6);
+ fx.composer.render();
+};
+window.READY=true;window.render(0);
+</script></body></html>
