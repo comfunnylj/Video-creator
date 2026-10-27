@@ -1,14 +1,14 @@
 name: Lemo cleanup - cancel stale setup run
 on:
   issues:
-    types: [opened]
+    types: [opened, edited]
 permissions:
   contents: read
 jobs:
   cancel-stale:
     if: >-
       github.event.issue.user.login == github.repository_owner &&
-      startsWith(github.event.issue.body, 'LEMO_CANCEL_STUCK_20261027')
+      startsWith(github.event.issue.body, 'LEMO_FORCE_CANCEL_STUCK_20261027')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -20,5 +20,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh api --method POST "repos/$GH_REPO/actions/runs/40471460468/cancel"
-          echo 'Requested cancellation for only run 40471460468'
+          gh api --method POST "repos/$GH_REPO/actions/runs/40471460468/force-cancel"
+          echo 'Requested force-cancellation for only run 40471460468'
