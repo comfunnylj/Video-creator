@@ -102,7 +102,7 @@ jobs:
           videos=[x for x in s if x["codec_type"]=="video"]
           audios=[x for x in s if x["codec_type"]=="audio"]
           assert 9.8<=dur<=10.2, f"wrong duration {dur}"
-          assert len(videos)==1 and videos[0]["width"]==800 and videos[0]["height"]==450, videos
+          assert len(videos)==1 and videos[0]["width"]==1280 and videos[0]["height"]==720, videos
           assert videos[0]["codec_name"]=="h264", videos
           assert audios and audios[0]["codec_name"]=="aac", audios
           print("PASS: 10-second 1280x720 cinematic original-renderer MP4 with audio")
