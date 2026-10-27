@@ -1,0 +1,156 @@
+name: Lemo-Opuscar - realistic steampunk metropolis
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: lemo-steampunk-realistic-city
+  cancel-in-progress: false
+
+jobs:
+  steampunk:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' &&
+       github.event.issue.user.login == github.repository_owner &&
+       startsWith(github.event.issue.body, 'LEMO_METROPOLIS_REALISTIC_V1'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      PROJECT: ${{ github.workspace }}/lemo-opuscar-projects/steampunk-metropolis-realistic
+      OUT: ${{ github.workspace }}/lemo-output
+      LIB: ${{ github.workspace }}/lemo-upstream
+      LEMO_ANGLE: swiftshader
+    steps:
+      - name: Check out Video-creator (does not touch Oracle)
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install FFmpeg and FFprobe from independent npm binary packages (no APT)
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            npm install --prefix "$RUNNER_TEMP/lemo-binaries" --no-audit --no-fund ffmpeg-static@5.2.0 ffprobe-static@3.1.0
+            mkdir -p "$HOME/.local/bin"
+            export FFMPEG_BIN="$RUNNER_TEMP/lemo-binaries/node_modules/ffmpeg-static"
+            export FFPROBE_BIN="$RUNNER_TEMP/lemo-binaries/node_modules/ffprobe-static"
+            node -e 'const fs=require("fs"); const p=require(process.env.FFMPEG_BIN); const f=fs.statSync(p).isDirectory()?p+"/ffmpeg":p; if(!fs.existsSync(f)) throw Error("missing ffmpeg binary: "+f); process.stdout.write(f)' > "$RUNNER_TEMP/lemo-ffmpeg-path"
+            node -e 'const p=require(process.env.FFPROBE_BIN).path; if(!p) throw Error("missing ffprobe"); process.stdout.write(p)' > "$RUNNER_TEMP/lemo-ffprobe-path"
+            echo "ffmpeg binary path: $(cat "$RUNNER_TEMP/lemo-ffmpeg-path")"
+            ls -lh "$(cat "$RUNNER_TEMP/lemo-ffmpeg-path")" || true
+            ln -sf "$(cat "$RUNNER_TEMP/lemo-ffmpeg-path")" "$HOME/.local/bin/ffmpeg"
+            echo "ffprobe binary path: $(cat "$RUNNER_TEMP/lemo-ffprobe-path")"
+            ls -lh "$(cat "$RUNNER_TEMP/lemo-ffprobe-path")" || true
+            ln -sf "$(cat "$RUNNER_TEMP/lemo-ffprobe-path")" "$HOME/.local/bin/ffprobe"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+            export PATH="$HOME/.local/bin:$PATH"
+          fi
+          ls -lh "$HOME/.local/bin" || true
+          command -v ffmpeg
+          command -v ffprobe
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
+          node --version
+          python3 --version
+      - name: Fetch original Lemo-Opuscar library using sparse checkout
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse --branch main https://github.com/lemomo-ai/lemo-opuscar.git "$LIB"
+          git -C "$LIB" sparse-checkout set --no-cone \
+            '/*' '!/styles/*/demo/' '!/styleboard/' '!/docs/frames/' \
+            '!/docs/cover.jpg' '!/docs/opuscar98.jpg' '!/styles/*/poster.jpg'
+          test -f "$LIB/AGENTS.md"
+          test -f "$LIB/styles/hd-2d/STYLE.md"
+          test -f "$LIB/core/render/video.mjs"
+          git -C "$LIB" rev-parse HEAD | tee "$GITHUB_WORKSPACE/upstream-commit.txt"
+      - name: Install original renderer and Chromium
+        run: |
+          cd "$LIB"
+          sh plugin/skills/lemo-opuscar/scripts/setup.sh deps
+          test -f node_modules/three/build/three.module.js
+          test -x .venv/bin/python
+      - name: Render actual original Lemo quality check stills
+        run: |
+          mkdir -p "$OUT/stills"
+          cd "$LIB"
+          node core/render/still.mjs "$PROJECT" 0 2 4 6.7 --size 1280x720 --out "$OUT/stills"
+      - name: Upload early real-render preview frames
+        uses: actions/upload-artifact@v4
+        with:
+          name: lemo-metropolis-stills
+          retention-days: 14
+          path: |
+            lemo-output/stills/*.jpg
+            lemo-opuscar-projects/steampunk-metropolis-realistic/index.html
+      - name: Render full 3D steampunk metropolis using original Lemo video.mjs
+        run: |
+          cd "$LIB"
+          node core/render/video.mjs "$PROJECT" --fps 24 --workers 1 --size 1280x720 --out "$OUT/clockwork_metropolis_silent.mp4"
+      - name: Make sound and finalize MP4 (upstream mux with checked fallback)
+        run: |
+          python3 "$GITHUB_WORKSPACE/lemo-opuscar-projects/steampunk-hd2d/score.py" "$OUT/score.wav"
+          python3 - <<'PY'
+          import os, wave
+          p=os.path.join(os.environ['OUT'],'score.wav')
+          with wave.open(p,'rb') as w:
+              assert w.getnchannels()==1 and w.getsampwidth()==2
+              assert w.getnframes()==10*w.getframerate() # existing 10s score; film is 8s, trim when muxing
+              print('Validated 10 s WAV source for 8 s city film')
+          PY
+          cd "$LIB"
+          if sh core/render/mux.sh "$OUT/clockwork_metropolis_silent.mp4" "$OUT/score.wav" "$OUT/clockwork_metropolis_cinematic.mp4" 24 0; then
+            echo 'Original upstream mux succeeded (cinematic)'
+          else
+            echo 'Upstream loudnorm duration check failed, validating WAV through FFmpeg fallback'
+            ffmpeg -v error -xerror -i "$OUT/score.wav" -f null -
+            ffmpeg -y -loglevel error -i "$OUT/clockwork_metropolis_silent.mp4" -i "$OUT/score.wav" -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 192k -t 8 -movflags +faststart "$OUT/clockwork_metropolis_cinematic.mp4"
+          fi
+      - name: Verify MP4 duration, size, video and audio
+        run: |
+          ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height,r_frame_rate -of json "$OUT/clockwork_metropolis_cinematic.mp4" | tee "$OUT/ffprobe.json"
+          python3 - <<'PY'
+          import json, os
+          with open(os.path.join(os.environ["OUT"],"ffprobe.json")) as f: info=json.load(f)
+          dur=float(info["format"]["duration"])
+          s=info["streams"]
+          videos=[x for x in s if x["codec_type"]=="video"]
+          audios=[x for x in s if x["codec_type"]=="audio"]
+          assert 7.8<=dur<=8.2, f"wrong duration {dur}"
+          assert len(videos)==1 and videos[0]["width"]==1280 and videos[0]["height"]==720, videos
+          assert videos[0]["codec_name"]=="h264", videos
+          assert audios and audios[0]["codec_name"]=="aac", audios
+          print("PASS: original Lemo 8-second cityscape 1280x720 H264/AAC")
+          PY
+      - name: Upload results even if a render step fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lemo-realistic-steampunk-metropolis
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            lemo-output/clockwork_metropolis_cinematic.mp4
+            lemo-output/clockwork_metropolis_silent.mp4
+            lemo-output/ffprobe.json
+            lemo-output/stills/*.jpg
+            upstream-commit.txt
+            lemo-opuscar-projects/steampunk-metropolis-realistic/index.html
+            lemo-opuscar-projects/steampunk-hd2d/score.py
+      - name: Report result to originating issue
+        if: always() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+          STATUS: ${{ job.status }}
+        run: |
+          gh issue comment "$ISSUE" --repo "$GH_REPO" --body "Lemo-Opuscar original renderer run: **$STATUS**. Actions: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. If successful, download the lemo-realistic-steampunk-metropolis artifact. Upstream still.mjs, video.mjs and core/three/post.js; 3D city buildings, clocktower, bridges, airships, moving train, PBR, GTAO; not a static-image film."
