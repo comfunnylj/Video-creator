@@ -1,0 +1,24 @@
+name: Lemo cleanup - cancel stale setup run
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  cancel-stale:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.body, 'LEMO_CANCEL_STUCK_20261027')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Cancel exactly the stalled Lemo test run, not successful runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh api --method POST "repos/$GH_REPO/actions/runs/40471460468/cancel"
+          echo 'Requested cancellation for only run 40471460468'
