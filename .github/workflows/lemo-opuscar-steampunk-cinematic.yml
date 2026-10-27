@@ -37,14 +37,24 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install FFmpeg only with bounded APT time
+      - name: Install FFmpeg and FFprobe from independent npm binary packages (no APT)
         run: |
           if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
-            sudo timeout 180s apt-get -o Acquire::Retries=0 -y -qq install ffmpeg
+            npm install --prefix "$RUNNER_TEMP/lemo-binaries" --no-audit --no-fund ffmpeg-static@5.2.0 ffprobe-static@3.1.0
+            mkdir -p "$HOME/.local/bin"
+            export FFMPEG_BIN="$RUNNER_TEMP/lemo-binaries/node_modules/ffmpeg-static"
+            export FFPROBE_BIN="$RUNNER_TEMP/lemo-binaries/node_modules/ffprobe-static"
+            node -e 'const f=require(process.env.FFMPEG_BIN); if(!f) throw Error("missing ffmpeg"); process.stdout.write(f)' > "$RUNNER_TEMP/lemo-ffmpeg-path"
+            node -e 'const p=require(process.env.FFPROBE_BIN).path; if(!p) throw Error("missing ffprobe"); process.stdout.write(p)' > "$RUNNER_TEMP/lemo-ffprobe-path"
+            ln -sf "$(cat "$RUNNER_TEMP/lemo-ffmpeg-path")" "$HOME/.local/bin/ffmpeg"
+            ln -sf "$(cat "$RUNNER_TEMP/lemo-ffprobe-path")" "$HOME/.local/bin/ffprobe"
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+            export PATH="$HOME/.local/bin:$PATH"
           fi
           command -v ffmpeg
           command -v ffprobe
           ffmpeg -version | head -1
+          ffprobe -version | head -1
           node --version
           python3 --version
       - name: Fetch original Lemo-Opuscar library using sparse checkout
