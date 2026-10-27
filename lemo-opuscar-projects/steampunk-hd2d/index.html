@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clockwork Dawn | original steampunk diorama</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d1b29}
+canvas{display:block;width:100%;height:100%}
+#vignette{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 95px 22px rgba(4,9,20,.7)}
+#title{position:fixed;left:7%;bottom:10%;font:700 clamp(14px,3vw,30px) Georgia,serif;letter-spacing:.2em;color:#f7da9d;text-shadow:0 2px 8px #000;opacity:0;pointer-events:none}
+#chapter{position:fixed;left:7%;bottom:18%;color:#d9b674;font:12px Georgia,serif;letter-spacing:.45em;opacity:0;pointer-events:none}
+</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head>
+<body><div id="vignette"></div><div id="chapter">CHAPTER I</div><div id="title">CLOCKWORK DAWN</div>
+<script type="module">
+import * as THREE from 'three';
+const W=innerWidth,H=innerHeight, clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x)};
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x102938);scene.fog=new THREE.FogExp2(0x14313d,.027);
+const camera=new THREE.PerspectiveCamera(35,W/H,.1,115);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'low-power'});
+renderer.setSize(W,H);renderer.setPixelRatio(1);renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.45;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+document.body.insertBefore(renderer.domElement,document.body.firstChild);
+const matte=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:.87,metalness:.14});
+const brass=new THREE.MeshStandardMaterial({color:0xb78d4b,roughness:.35,metalness:.74});
+const copper=new THREE.MeshStandardMaterial({color:0x7f482c,roughness:.51,metalness:.66});
+const iron=new THREE.MeshStandardMaterial({color:0x25303b,roughness:.67,metalness:.63});
+const stone=matte(0x435c64),water=matte(0x263746);
+const goldLit=new THREE.MeshStandardMaterial({color:0xffcc74,emissive:0xd17625,emissiveIntensity:1.3,roughness:.46});
+const whiteLit=new THREE.MeshBasicMaterial({color:0xffe6b6});
+function put(geo,mat,x,y,z,rx=0,ry=0,rz=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
+function cube(x,y,z,w,h,d,mat){return put(new THREE.BoxGeometry(w,h,d),mat,x,y,z)}
+function cyl(x,y,z,rad,h,mat){return put(new THREE.CylinderGeometry(rad,rad,h,12),mat,x,y,z)}
+function pipe(x,y,z,len,axis,mat){const m=cyl(x,y,z,.12,len,mat);if(axis==='x')m.rotation.z=Math.PI/2;if(axis==='z')m.rotation.x=Math.PI/2;return m}
+function tex(seed){const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');x.fillStyle='#52656a';x.fillRect(0,0,32,32);
+for(let i=0;i<140;i++){const a=(i*73+seed*31)%32,b=(i*41+seed*17)%32;x.fillStyle=i%3?'#4c585f':'#73858a';x.fillRect(a,b,1+(i%2),1+(i%3===0));}
+const t=new THREE.CanvasTexture(c);t.magFilter=t.minFilter=THREE.NearestFilter;t.colorSpace=THREE.SRGBColorSpace;return t}
+const masonry=new THREE.MeshStandardMaterial({map:tex(2),roughness:.9});
+const terrain=cube(0,-.35,0,19,.7,12,iron);terrain.receiveShadow=true;
+cube(0,-.75,0,20,.18,13,copper);for(let x=-9;x<=9;x+=2.2){cube(x,-.8,5.95,.22,.5,.17,brass);cube(x,-.8,-5.95,.22,.5,.17,brass)}
+for(let z=-5;z<6;z+=2){cube(-9.3,-.8,z,.2,.55,.2,brass);cube(9.3,-.8,z,.2,.55,.2,brass)}
+for(let n=0;n<20;n++){let x=-8+(n*47%155)/10, z=-4.4+(n*73%82)/10; if(Math.abs(x-2)<2.6&&Math.abs(z)<2.5)continue;
+let ht=1.1+(n*7%19)/10;
+cube(x,ht/2,z,1.0,ht,.95,masonry);cube(x,ht+.18,z,1.15,.3,1.1,copper);
+for(let j=0;j<2;j++){let windowx=x-.33+j*.68;
+const windowpane=cube(windowx,ht*.65,z+.49,.25,.35,.045,goldLit);windowpane.castShadow=false;}
+if(n%3===0){pipe(x,ht+.9,z,.9,'y',iron);cyl(x,ht+1.35,z,.32,.1,brass);}
+}
+for(let a=0;a<4;a++){let x=-6.7+a*4.1,z=3.6;
+cyl(x,.46,z,.12,.95,copper);const lantern=put(new THREE.BoxGeometry(.42,.55,.42),goldLit,x,1.1,z);lantern.castShadow=false;
+const p=new THREE.PointLight(0xffa64d,4,7,2);p.position.set(x,1.15,z);scene.add(p);window['lamp'+a]=p;
+}
+const towerX=3.1,towerZ=-.9;
+cube(towerX,2.2,towerZ,3.2,4.4,3.1,masonry);cube(towerX,4.6,towerZ,3.7,.6,3.6,copper);
+cube(towerX,5.6,towerZ,2.4,1.6,2.1,masonry);cyl(towerX,6.65,towerZ,1.28,.65,iron);
+const spire=put(new THREE.ConeGeometry(1.22,2.35,8),copper,towerX,8.1,towerZ);
+const dial=cyl(towerX,5.55,towerZ+1.16,.82,.12,brass);dial.rotation.x=Math.PI/2;
+const dialFace=cyl(towerX,5.55,towerZ+1.25,.67,.13,whiteLit);dialFace.rotation.x=Math.PI/2;
+const handLong=cube(towerX,5.78,towerZ+1.34,.07,.48,.07,iron);handLong.castShadow=false;
+const handShort=cube(towerX+.14,5.55,towerZ+1.35,.3,.07,.07,iron);handShort.castShadow=false;
+const gearGroup=[];
+function gear(x,y,z,r){const g=new THREE.Group();g.position.set(x,y,z);scene.add(g);
+const hoop=new THREE.Mesh(new THREE.TorusGeometry(r,.12,5,24),brass);g.add(hoop);
+for(let k=0;k<12;k++){const a=k*Math.PI/6;const tooth=new THREE.Mesh(new THREE.BoxGeometry(.33,.23,.22),brass);
+tooth.position.set(r*Math.cos(a),r*Math.sin(a),0);tooth.rotation.z=a+Math.PI/2;g.add(tooth);}
+for(let k=0;k<6;k++){const a=k*Math.PI/3;const spoke=new THREE.Mesh(new THREE.BoxGeometry(r*.9,.12,.13),copper);spoke.rotation.z=a;spoke.position.set(r*.42*Math.cos(a),r*.42*Math.sin(a),.03);g.add(spoke);}
+const hub=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.25,10),iron);hub.rotation.x=Math.PI/2;g.add(hub);
+gearGroup.push(g);return g;}
+gear(1.35,2.0,towerZ+1.66,1.1);gear(4.9,2.5,towerZ+1.66,.83);gear(-3.3,1.35,4.15,1.1);
+const smoke=[];
+for(let i=0;i<22;i++){const x=-7.7+(i*11%21)*.73,z=-4+(i*13%10)*.8;
+if(i%4===0){cyl(x,2.2,z,.24,3.4,copper);cyl(x,4,z,.35,.18,iron);
+for(let j=0;j<4;j++){let b=put(new THREE.SphereGeometry(.28,.8?8:8,6),
+new THREE.MeshBasicMaterial({color:0x94a6a9,transparent:true,opacity:.18,depthWrite:false}),x,4.1,z);b.castShadow=false;smoke.push({m:b,x,z,phase:j/4+((i*13)%7)/7});}}
+}
+const ship=new THREE.Group();scene.add(ship);
+const hull=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),new THREE.MeshStandardMaterial({color:0x9c754d,roughness:.7,metalness:.28}));hull.scale.set(3.2,.75,.95);ship.add(hull);
+for(let a=-2.2;a<=2.3;a+=1.1){const band=new THREE.Mesh(new THREE.TorusGeometry(.73,.045,5,14),brass);band.rotation.y=Math.PI/2;band.position.x=a;ship.add(band);}
+const gondola=new THREE.Mesh(new THREE.BoxGeometry(1.8,.42,.65),iron);gondola.position.y=-1.13;ship.add(gondola);
+const rotor=new THREE.Group();rotor.position.set(-3.1,-.1,0);ship.add(rotor);
+for(let a=0;a<4;a++){const blade=new THREE.Mesh(new THREE.BoxGeometry(.08,1.1,.16),copper);blade.rotation.x=a*Math.PI/4;rotor.add(blade)}
+function sprite(){const c=document.createElement('canvas');c.width=16;c.height=26;const g=c.getContext('2d');
+g.clearRect(0,0,16,26);function p(x,y,w,h,col){g.fillStyle=col;g.fillRect(x,y,w,h)}
+p(5,0,6,3,'#c5a77a');p(3,3,10,2,'#654833');p(4,5,8,5,'#dcb990');p(3,10,10,8,'#9c3439');
+p(5,11,6,5,'#d0a965');p(2,12,2,7,'#4f5863');p(12,12,2,7,'#4f5863');
+p(4,18,3,7,'#283442');p(9,18,3,7,'#283442');p(3,24,5,2,'#181e26');p(8,24,5,2,'#181e26');
+const t=new THREE.CanvasTexture(c);t.magFilter=t.minFilter=THREE.NearestFilter;t.colorSpace=THREE.SRGBColorSpace;
+const m=new THREE.Mesh(new THREE.PlaneGeometry(.9,1.65),new THREE.MeshStandardMaterial({map:t,transparent:true,alphaTest:.1,side:THREE.DoubleSide,roughness:1}));
+scene.add(m);m.castShadow=true;return m}
+const hero=sprite();const lampGlow=new THREE.PointLight(0xffb348,.3,8,2);lampGlow.position.set(towerX,5.75,towerZ+2.1);scene.add(lampGlow);
+const hemi=new THREE.HemisphereLight(0x9ed2e4,0x3b251a,2.4);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xffcc96,2.2);sun.position.set(-8,14,8);sun.castShadow=true;
+sun.shadow.mapSize.set(512,512);sun.shadow.camera.left=-14;sun.shadow.camera.right=14;sun.shadow.camera.top=14;sun.shadow.camera.bottom=-14;scene.add(sun);
+const motes=[];
+for(let i=0;i<48;i++){let m=put(new THREE.SphereGeometry(.025,4,4),new THREE.MeshBasicMaterial({color:0xf4c989,transparent:true,opacity:.42}),0,0,0);
+m.castShadow=false;motes.push({m,i});}
+const chapter=document.getElementById('chapter'),title=document.getElementById('title');
+window.DUR=10;window.EV=[{t:3.4,type:'machine_start'},{t:5.2,type:'lamps_on'},{t:8.8,type:'title'}];
+window.render=(t)=>{
+const lightUp=smooth((t-4.6)/2.4);
+gearGroup.forEach((g,i)=>g.rotation.z=(i%2?-1:1)*(t*.45+i*.5));
+ship.position.set(-5.4+t*.58,9.15+Math.sin(t*.56)*.2,-4.4);
+rotor.rotation.x=t*5;
+hero.position.set(-5+Math.min(t,4.4)*.83,.9,3.7);
+hero.lookAt(camera.position.x,hero.position.y,camera.position.z);
+hero.position.y+=t<4.4?Math.abs(Math.sin(t*12))*.075:Math.sin(t*2)*.02;
+lampGlow.intensity=.5+lightUp*9;
+for(let j=0;j<4;j++)window['lamp'+j].intensity=1.3+3.2*smooth((t-4.8-j*.35)/.75);
+dialFace.material.emissive?.set?.(0xe7a94f);
+dialFace.material.color.setRGB(1,.72+.23*lightUp,.44+.5*lightUp);
+handLong.rotation.z=-t*.2;handShort.rotation.z=-t*.04;
+for(const o of smoke){let u=(t*.19+o.phase)%1;o.m.position.set(o.x+Math.sin(u*8+o.phase*12)*.3,4.1+u*4,o.z);
+const s=.25+u*1.25;o.m.scale.set(s,s,s);o.m.material.opacity=.14*(1-u);}
+motes.forEach(o=>{const {m,i}=o;m.position.set(-8+(i*37%160)/10, .3+((i*19)%52)/10+Math.sin(t*.7+i)*.28,-5+((i*11)%100)/10);});
+camera.position.set(14.8-t*.19,16.9-t*.20,24.2-t*.34);
+camera.lookAt(-.1,.8+t*.10,0);
+const alpha=smooth((t-7.2)/1.1)*(1-smooth((t-9.7)/.3));chapter.style.opacity=String(alpha*.8);title.style.opacity=String(alpha);
+renderer.render(scene,camera);
+};
+window.READY=true;window.render(0);
+</script></body></html>
