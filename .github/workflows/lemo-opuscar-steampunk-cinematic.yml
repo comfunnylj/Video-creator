@@ -46,11 +46,16 @@ jobs:
             export FFPROBE_BIN="$RUNNER_TEMP/lemo-binaries/node_modules/ffprobe-static"
             node -e 'const f=require(process.env.FFMPEG_BIN); if(!f) throw Error("missing ffmpeg"); process.stdout.write(f)' > "$RUNNER_TEMP/lemo-ffmpeg-path"
             node -e 'const p=require(process.env.FFPROBE_BIN).path; if(!p) throw Error("missing ffprobe"); process.stdout.write(p)' > "$RUNNER_TEMP/lemo-ffprobe-path"
+            echo "ffmpeg binary path: $(cat "$RUNNER_TEMP/lemo-ffmpeg-path")"
+            ls -lh "$(cat "$RUNNER_TEMP/lemo-ffmpeg-path")" || true
             ln -sf "$(cat "$RUNNER_TEMP/lemo-ffmpeg-path")" "$HOME/.local/bin/ffmpeg"
+            echo "ffprobe binary path: $(cat "$RUNNER_TEMP/lemo-ffprobe-path")"
+            ls -lh "$(cat "$RUNNER_TEMP/lemo-ffprobe-path")" || true
             ln -sf "$(cat "$RUNNER_TEMP/lemo-ffprobe-path")" "$HOME/.local/bin/ffprobe"
             echo "$HOME/.local/bin" >> "$GITHUB_PATH"
             export PATH="$HOME/.local/bin:$PATH"
           fi
+          ls -lh "$HOME/.local/bin" || true
           command -v ffmpeg
           command -v ffprobe
           ffmpeg -version | head -1
