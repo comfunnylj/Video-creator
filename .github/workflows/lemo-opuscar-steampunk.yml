@@ -2,7 +2,7 @@ name: Lemo-Opuscar - original HD2D steampunk render
 on:
   workflow_dispatch:
   issues:
-    types: [opened]
+    types: [opened, edited]
 
 permissions:
   contents: read
