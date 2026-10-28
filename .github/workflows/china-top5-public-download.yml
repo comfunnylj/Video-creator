@@ -1,0 +1,67 @@
+name: China Top5 downloadable MP4 public release
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+  issues: write
+jobs:
+  render-and-release:
+    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.body, 'TOP5_RELEASE_DOWNLOAD_20261029')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install media tools and Korean fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y ffmpeg fonts-nanum
+          python -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+      - name: Render reference-style China Top5 without sound
+        run: python travel-top5-shorts/scripts/render_china_release.py
+      - name: Confirm all MP4 frames decodable and no audio
+        run: |
+          ffmpeg -v error -xerror -i output_verified/China_Top5_Reference_Style_SILENT.mp4 -f null -
+          ffprobe -v error -select_streams a -show_entries stream=index -of default=nw=1 output_verified/China_Top5_Reference_Style_SILENT.mp4 > /tmp/audio_streams.txt
+          test ! -s /tmp/audio_streams.txt
+          sha256sum output_verified/China_Top5_Reference_Style_SILENT.mp4
+      - name: Publish long-lived direct-download release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="china-top5-reference-silent-20261029"
+          FILE="output_verified/China_Top5_Reference_Style_SILENT.mp4"
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$FILE" output_verified/SOURCE_CREDITS.txt --clobber --repo "$GH_REPO"
+          else
+            gh release create "$TAG" "$FILE" output_verified/SOURCE_CREDITS.txt --repo "$GH_REPO" \
+              --title "China Travel Top5 - Reference Style - Silent MP4" \
+              --notes "Direct-download MP4: 720x1280, 22.97 seconds, no audio track. Five verified real-location Pexels source photographs animated as cinematic moving frames. Includes photo attribution. Not a video taken on location."
+          fi
+      - name: Validate public download URL and downloaded binary
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="china-top5-reference-silent-20261029"
+          FILENAME="China_Top5_Reference_Style_SILENT.mp4"
+          URL="https://github.com/$GH_REPO/releases/download/$TAG/$FILENAME"
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fL --connect-timeout 10 --max-time 90 --retry 2 -o /tmp/china_release_downloaded.mp4 "$URL"; then break; fi
+            sleep 3
+          done
+          test -s /tmp/china_release_downloaded.mp4
+          cmp output_verified/$FILENAME /tmp/china_release_downloaded.mp4
+          echo "PUBLIC_DIRECT_DOWNLOAD_VERIFIED $URL"
+      - name: Post confirmed direct download link
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          URL="https://github.com/$GH_REPO/releases/download/china-top5-reference-silent-20261029/China_Top5_Reference_Style_SILENT.mp4"
+          gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body "외부 공개 링크에서 MP4 다운로드 후 원본과 파일이 일치하는지 검증했습니다: $URL"
