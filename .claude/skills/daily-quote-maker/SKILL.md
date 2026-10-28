@@ -22,6 +22,7 @@ version: 1.1.0
 - Balance 힘/성취/위로 over future approved production; preserve exact quote/author/work and source/context. Keep historical spelling modernization and original translation clearly distinguished from verbatim quotation.
 - On the card show only the literary excerpt, a distinctly smaller author and a concise work title. Put biography, context and hashtags in a separate 2–4 sentence caption.
 - Do not invent composition dates, motives or biographical circumstances. Avoid imposing a lesson or excessive emotion.
+- For user-provided original text, set `user_original=true`. Leave unspecified author/work blank; never invent credits. Nonempty credits require `attribution_approved=true` after the user supplies/approves them. Keep `source_verified=true` only when the exact supplied text has been checked. This exception does not change the existing 65 literary DB rows.
 - User rights evaluation and actual posting permission are separate from source accuracy. All v1.1 samples remain NOT_PUBLISHED.
 
 ## 3. Photographic literature archive design
@@ -60,3 +61,5 @@ python -m unittest discover -s daily-quote-maker/tests -v
 
 ## 6. Maintenance / rollback
 Keep SKILL, QUALITY_POLICY, renderer, example JSON, tests, workflows and Drive manual on version 1.1.0. Run regression tests and real-photo QA after relevant changes. Record changes/test results in CHANGELOG; use Git history for v1.0 restoration, preserving databases and other workflows. Do not claim that a repository skill is account-level ChatGPT installation.
+
+Install renderer dependencies from the single `daily-quote-maker/requirements.txt` in every rendering workflow, including user-original samples. Run all 19 regression cases after changes. See `REVALIDATION_20261029.md` for the renewed photo, visual, failure-log and storage checks; a historical failed run alone does not show that the current implementation is broken.

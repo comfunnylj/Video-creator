@@ -15,11 +15,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install Korean fonts and Pillow
+      - name: Install Korean serif font and renderer requirements
         run: |
           sudo apt-get update -qq
           sudo apt-get install -qq -y fonts-noto-cjk
-          python -m pip install --disable-pip-version-check pillow fonttools
+          python -m pip install --disable-pip-version-check -r daily-quote-maker/requirements.txt
       - name: Render genuine high-resolution seascape + selected poem
         run: |
           python daily-quote-maker/render_quote_card.py --job daily-quote-maker/examples/user_original_moon_dream_sample.json --output daily-quote-maker/outputs-user-original

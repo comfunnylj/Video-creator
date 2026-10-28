@@ -1,9 +1,9 @@
 name: Daily Quote Maker v1.1 - Quality Test
 on:
   push:
-    paths: ['daily-quote-maker/**', '.claude/skills/daily-quote-maker/**', '.github/workflows/daily-quote-quality-test.yml']
+    paths: ['daily-quote-maker/**', '.claude/skills/daily-quote-maker/**', '.github/workflows/daily-quote-quality-test.yml', '.github/workflows/daily-quote-user-original.yml']
   pull_request:
-    paths: ['daily-quote-maker/**', '.claude/skills/daily-quote-maker/**', '.github/workflows/daily-quote-quality-test.yml']
+    paths: ['daily-quote-maker/**', '.claude/skills/daily-quote-maker/**', '.github/workflows/daily-quote-quality-test.yml', '.github/workflows/daily-quote-user-original.yml']
   workflow_dispatch:
     inputs:
       render_samples:

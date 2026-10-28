@@ -1,6 +1,6 @@
 # Daily Quote Maker v1.1.0 설치·운영·유지보수 매뉴얼
 
-업데이트: 2026-10-25 (Asia/Seoul). 기본 산출물은 사진 위 문학 문구 4:5 JPEG 한 장입니다. 이번 버전은 개인적·비상업적 디자인 검수용이며 자동 제작·게시 중단 상태입니다.
+업데이트: 2026-10-29 (Asia/Seoul). 버전은 1.1.0을 유지합니다. 기본 산출물은 사진 위 문학 문구 4:5 JPEG 한 장입니다. 이번 버전은 개인적·비상업적 디자인 검수용이며 자동 제작·게시 중단 상태입니다.
 
 ## 1. 파일과 연결
 - 저장소: https://github.com/comfunnylj/Video-creator , 브랜치 `claude/eloquent-hamilton-wvxqej`.
@@ -34,6 +34,8 @@ python daily-quote-maker/render_quote_card.py --job job.json --config daily-quot
 GitHub Actions `Daily Quote Maker v1.1 - Quality Test`는 코드 push/PR 때 오프라인 테스트만 수행합니다. 테스트용 단색 이미지는 제품 샘플로 사용하지 않습니다. 실제 사진 시안은 workflow_dispatch에서 render_samples=true를 명시한 경우만 생성합니다. 예약 실행·SNS 게시 단계는 없습니다. 기존 영상용 수동 도구는 이전 기능으로 보존되며 이번 정지사진 제작 경로에 사용하지 않습니다.
 
 ## 3. 문구와 사진 준비
+사용자 자작 문구는 `user_original=true`로 구분합니다. 제공하지 않은 작가·작품명은 빈 문자열로 유지하며 만들어 넣지 않습니다. 사용자가 지정한 저자·작품명을 표기하려면 `attribution_approved=true`를 명시합니다. 이 예외는 기존 문구DB 65개를 변경하지 않습니다. 전달받은 실제 문구를 대조한 뒤에만 `source_verified=true`를 설정합니다.
+
 DB를 실시간 읽어 quote_id, quote, author, work, quote_reference를 확인합니다. `source_verified=true`는 출처 대조가 완료됐을 때만 씁니다. 원문 보존, 현대어 표기, 자체 번역을 구분해 기록합니다. 카드 줄바꿈은 조정할 수 있지만 문장을 임의로 바꾸지 않습니다. 캡션은 2–4문장으로 작품 맥락을 조용히 설명하고, 확인되지 않은 집필 이유·시기를 만들지 않습니다.
 
 사진 검색은 Unsplash → Pexels → Pixabay → Wikimedia Commons → 공개 아카이브 순으로 진행합니다. `photo.source_url`, `photographer`, `license_url`, `download_url`을 채웁니다. 이미 확보한 실제 원본은 `photo.local_path`로 입력할 수 있지만 출처 필드는 여전히 필수입니다. 실제 디코딩 픽셀 긴 변 3000 이상, 크롭 후 출력보다 큰 원본을 요구합니다. 화면 캡처/작은 미리보기를 확대하지 않습니다.
@@ -83,6 +85,8 @@ provenance는 원본·출력 SHA256, 실제 픽셀, 크롭 사각형, EXIF, sRGB
 v1.0 원본은 기준 커밋 46d6966b646b365b90e89ba182ccceb575cae38b에 있습니다. 되돌릴 때는 그 커밋의 해당 스킬/렌더러/정책만 새 커밋으로 복원하고 관련 테스트를 수행합니다. 다른 프로젝트의 변경이나 DB를 되돌리지 않습니다. 전체 브랜치 강제 리셋은 피합니다. GitHub에 파일이 있다는 이유만으로 계정 전체 ChatGPT 스킬 설치를 완료했다고 표현하지 않습니다.
 
 ## 8. v1.1 시안과 출처
+2026-10-29 재검증: 공통 requirements.txt를 모든 정지사진 렌더 워크플로에 적용하고 회귀 테스트를 19개로 확장했습니다. 과거 fontTools 누락 실패는 c85a850에서 이미 수정됐으며 후속 렌더 성공을 확인했습니다. 최신 코드와 보관 원본으로 6장을 재출력하고 육안 검수했습니다. C의 9:16 문구를 [0.72,0.63]에서 [0.72,0.50]으로 이동해 출처 주변 반사광을 줄였습니다. 상세 근거와 한계는 REVALIDATION_20261029.md를 확인합니다. 이미지 서버가 지연될 경우 검증된 보관 원본을 local_path로 지정하고 원래 출처·촬영자·라이선스를 유지합니다. 네트워크 장애를 화질 검사 통과로 처리하지 않습니다.
+
 A: Q0025, 예이츠 / 이니스프리의 호수 섬, 기존 DB 자체 번역. Brandi Alexandra, Unsplash zn-fKdxc2R8, 실제 3024×4032. 따뜻한 호수 노을에 44px 검정 상단 배치.
 B: Q0039, 윤동주 / 별 헤는 밤, 靑春을 청춘으로 표기. Elijah Grimm, Unsplash -YFE6ThVMjU, 실제 4000×5262. 별밤 설산에 36px 아이보리 상단 배치.
 C: Q0036, 한용운 / 님의 침묵, DB 현대어 발췌. mathieu gauzy, Unsplash bCaEKOnl-uk, 실제 2000×3000. 반짝이는 바닷물에 36px 아이보리 우측 배치. 사진은 프랑스 Collioure이며 시 속 장소라고 주장하지 않습니다.

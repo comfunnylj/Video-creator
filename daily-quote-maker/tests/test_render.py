@@ -102,4 +102,30 @@ class RendererTests(unittest.TestCase):
             job=copy.deepcopy(self.job);job['design']={'style':{'preset':preset}}
             self.assertEqual(self.runjob(job)['outputs'][0]['resolved_style']['preset'],preset)
 
+    def test_user_original_does_not_fabricate_attribution(self):
+        self.job.update(user_original=True)
+        self.job.pop('author'); self.job.pop('work')
+        result=self.runjob(formats=['4:5','9:16'])
+        self.assertEqual((result['author'],result['work']),('',''))
+        for output in result['outputs']:
+            self.assertTrue(all(s['role']=='quote' for s in output['text_segments']))
+        self.assertEqual(result['publication_status'],'NOT_PUBLISHED')
+
+    def test_user_original_attribution_requires_explicit_approval(self):
+        self.job.update(user_original=True)
+        with self.assertRaisesRegex(ValueError,'Do not invent an attribution'):
+            self.runjob()
+        self.job['attribution_approved']=True
+        self.assertEqual(self.runjob()['author'],'윤동주')
+
+    def test_external_config_and_cli_format_precedence(self):
+        self.job['design']={'style':{'font_size':50},'output_formats':['4:5','9:16']}
+        job=self.d/'job.json'; job.write_text(json.dumps(self.job,ensure_ascii=False))
+        config=self.d/'config.json'
+        config.write_text(json.dumps({'style':{'font_size':34,'min_font_size':28},'output_formats':['9:16']}))
+        result=r.run(job,self.d/'out',config_path=config,formats=['4:5'])
+        self.assertEqual(len(result['outputs']),1)
+        self.assertEqual(result['outputs'][0]['output_height'],1350)
+        self.assertEqual(result['outputs'][0]['actual_font_size'],34)
+
 if __name__=='__main__':unittest.main()

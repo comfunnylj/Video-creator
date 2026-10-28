@@ -1,5 +1,11 @@
 # Daily Quote Maker v1.1.0 — 운영 상태 (2026-10-25 KST)
 
+## 2026-10-29 재검증 보완
+- 아래 본문은 10월 25일 배포 기록이다. 최신 재검증은 REVALIDATION_20261029.md를 따른다.
+- 과거 fontTools 누락은 기존 c85a850에서 수정됐고 후속 자작시 렌더 40195857726 및 회귀 40195843730 성공을 직접 확인했다. 10월 27–28일 조회된 quote issue 실행은 skipped로, 실패 렌더가 아니었다.
+- 현재 보완본에서 회귀 테스트 19개 통과 및 A/B/C 4:5·9:16 총 6장 재렌더를 확인했다. C story 위치를 조정하고 실제 육안 검수를 다시 수행했다. 자작시 워크플로 의존성을 공통 requirements로 통일했다.
+- 기존 Drive 문서와 샘플 파일은 ID를 유지해 갱신한다. 이번 저장 확인은 Output의 storage_verification.json에 기록한다. DB·SNS 큐에 새 쓰기 요청은 하지 않는다. 자동 제작·게시는 중단 유지한다.
+
 ## 현재 상태: 디자인 검수 완료 / 자동 제작·게시 중단
 - 구현 커밋: https://github.com/comfunnylj/Video-creator/commit/1d1d6981e3a3db9ec5b2772b522b60a8c99d5e2a
 - GitHub Actions 회귀 테스트 성공: https://github.com/comfunnylj/Video-creator/actions/runs/40194080421
