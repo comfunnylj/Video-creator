@@ -52,3 +52,8 @@ python3 top5_operator.py --job sample_job.json --output-dir output
 ```
 
 Requires Python 3 and ffmpeg (with libass and fonts-nanum).
+
+
+## Mandatory final delivery — avoid `Library not found`
+
+For all future Top5 jobs, video rendering is **not** completion until the MP4 has been uploaded as a raw `video/mp4` to the connected Google Drive folder `프로젝트/멀티미디어/TOP 5` and the actual Google Drive file metadata (`mime_type`, file size, parent folder, browser URL) has been read back. Show the verified Drive URL as the primary open/download link. Never use `GenUI.openUrl("sandbox:/...")` buttons. The GitHub Actions artifact is a **14-day fallback**, not the canonical final delivery. Full procedure and validated 2026-10-28 recovery: [`travel-top5-shorts/DELIVERY_POLICY.md`](travel-top5-shorts/DELIVERY_POLICY.md).
