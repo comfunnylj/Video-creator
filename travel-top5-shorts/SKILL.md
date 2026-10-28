@@ -27,3 +27,16 @@ An Actions render success does **not** mean the user has the final video.
 - If this skill is present only in the GitHub repo and is not installed in ChatGPT, do not claim it has been installed or globally activated.
 
 See [DELIVERY_POLICY.md](DELIVERY_POLICY.md) for a tested 2026-10-28 example, explicit path, and verification checklist.
+
+
+## User-confirmed visual style — 2026-10-29 (priority over earlier default)
+- The uploaded reference video titled `세계 비현실적인 장소 TOP5 🌎#34.mp4` was inspected directly: **720×1280 at 30fps, 689 frames, 22.9667s**.
+- Editing pattern: 0.00–3.00s full-bleed opening footage with small two-line TOP5 heading; each ranked location begins with a brief **plain black flag/country transition card**, then a **full-bleed real-location scenic view** with compact white/black-outlined Korean and English caption positioned at the upper-left.
+- Observed transitions approximately 3.000–3.967, 6.867–8.033, 10.767–11.967, 14.900–16.067, 19.133–20.133. Total ~22.967s. These override the older 23.2s cut timings **when this reference style is requested**.
+- **NO BGM by default.** In this mode render `-an` and verify the MP4 has exactly **zero audio streams**. Do not add synthesized beats, stock music, or the reference video's copyrighted soundtrack unless the user explicitly authorizes a properly licensed audio track.
+- **NO yellow rank pill, gold/yellow decorative frame, blurred/letterboxed center strip, oversized title block, or colored border.** An incidental yellow word 'TOP5' within the source reference's headline, and national flag colors, are not a decorative frame; other overlays must be restrained.
+- **Use high-quality correctly identified source material**. For Wangxian Valley, source must actually depict Wangxian Valley (望仙谷); do not substitute generic canyon or modern bridges, or falsely claim a generic photograph depicts the iconic cliff houses. Lijiang must show verified Lijiang imagery. Inspect a contact sheet or a representative frame from every clip/photo before delivery.
+- Footage is preferred because the reference contains real moving scenes. If only photographs are legally obtainable, animate with subtle pan but state clearly that the result uses photo movement rather than real recorded footage.
+- Subjective TOP5 ranking must not be described as an official tourism ranking.
+- Example generated for reference style: `China_Top5_Reference_Style_SILENT.mp4` (2026-10-29), local inspection verified 689 frames at 30fps, 720×1280, 22.9667s, video-only MP4; sources recorded separately in `China_Top5_Reference_Style_SOURCES.txt`.
+- Keep verified Google Drive delivery as a backup; **also provide a direct verified sandbox download link** when a generated local MP4 is available, since the user explicitly wants to download the file directly. Do not wrap the sandbox URL inside `GenUI.openUrl`.
