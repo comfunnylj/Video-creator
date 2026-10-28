@@ -1,0 +1,44 @@
+name: China Travel TOP5 — Wikimedia licensed photos
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: write
+jobs:
+  render:
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      startsWith(github.event.issue.body, 'CHINA_TOP5_V1')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CJK fonts and ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
+          python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Render original-music real-photo Top5
+        run: python travel-top5-shorts/scripts/render_wikimedia_china.py --event "$GITHUB_EVENT_PATH" --out output_china_top5
+      - name: Upload MP4 and attribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: china-top5-short-licensed
+          retention-days: 14
+          path: |
+            output_china_top5/China_Top5_KO_EN.mp4
+            output_china_top5/ATTRIBUTION.txt
+            output_china_top5/source_audit.json
+      - name: Comment result
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" \
+            --body "중국여행 Top5 영상 제작 성공. Actions 실행: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID → Artifacts → china-top5-short-licensed. 상업용 음원 대신 오리지널 비트를 사용했고, 라이선스 사진 기반 모션 영상입니다."
