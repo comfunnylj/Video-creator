@@ -17,8 +17,8 @@ The root cause of the mobile UI error is not established. Do not claim the platf
    - byte size matches the source file;
    - parent folder is the intended folder;
    - retrieve the actual returned `url`/browser link.
-5. Only after readback, show the real Drive browser URL as the **primary user-facing video link**.
-6. If the Drive upload or verification fails, do not claim the link works. Clearly report the failure and provide the GitHub Actions artifact/run link as a temporary fallback (artifacts expire after 14 days).
+5. For private owner-only storage, provide the verified Drive link, but **a Drive metadata readback does not prove the user's viewer can open/preview/download it**. When the owner explicitly requests a directly downloadable public creative file, use a **verified direct binary asset link** (e.g., GitHub Release) as the primary link instead.
+6. If the owner reports the Drive link is unusable, stop repeating it. Where public distribution is authorized, publish the permitted output to GitHub Releases, then **download it from the same public HTTPS asset URL and compare bytes**. The issue-specific Actions artifact alone is a temporary fallback (14-day expiry). If the file is confidential, do not publish it publicly.
 7. Where licensing requires it, also upload `ATTRIBUTION.txt` and `source_audit.json`, and keep media license provenance explicit.
 8. Do **not** render `GenUI.openUrl("sandbox:/...")` as a user button; this is not an ordinary website URL and may trigger a missing-library or file resolver error. Sandbox links may be optional secondary downloads only when the backing file was actually generated/verified during this conversation.
 
@@ -35,3 +35,10 @@ The root cause of the mobile UI error is not established. Do not claim the platf
 - Google Drive read-back: `17AZa7eAQq6tIGIl8rLzIAX-Ou81Vexmz`, `video/mp4`, `1244351` bytes, expected parent folder confirmed.
 - Durable owner link: https://drive.google.com/file/d/17AZa7eAQq6tIGIl8rLzIAX-Ou81Vexmz/view?usp=drivesdk
 - Render run: https://github.com/comfunnylj/Video-creator/actions/runs/40705776917
+
+## 2026-10-29 verified remedy after Drive and Library failures
+- Symptom: user could not open either ChatGPT sandbox attachment links or the owner Drive MP4 browser preview. Root cause was not proven; ffmpeg full decode verified the video was not obviously corrupted.
+- For the China Top5 public travel video, Actions workflow `.github/workflows/china-top5-public-download.yml` regenerated video (689 frames/30fps, 720×1280, no audio), then published a GitHub Release asset.
+- The release's browser_download_url was confirmed by GitHub API and Actions downloaded it over HTTPS and used `cmp` to check exact byte equality. Workflow status: completed / success.
+- Direct link: https://github.com/comfunnylj/Video-creator/releases/download/china-top5-reference-silent-20261029/China_Top5_Reference_Style_SILENT.mp4
+- This release is PUBLIC. Do not automatically expose private/sensitive files publicly. For public media direct-download requests, this pattern avoids ChatGPT internal Library and Google Drive preview resolvers.
